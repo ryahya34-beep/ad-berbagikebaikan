@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ad-BerbagiKebaikan - Laporan Iklan & Donasi</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPA_URL='https://hharingjtlebvpbmbinf.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhoYXJpbmdqdGxlYnZwYm1iaW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5OTI2MjEsImV4cCI6MjA5MzU2ODYyMX0.u7TX7SB5CORqTl_mPC56-uTF8AOduPAo7q9_bZNKzYI';
+const supa=supabase.createClient(SUPA_URL,SUPA_KEY,{global:{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}}});
+</script>
+<style>
+:root{--primary:#1e40af;--secondary:#059669;--danger:#dc2626;--warning:#d97706;--bg:#f8fafc;--card:#ffffff;--text:#1e293b;--border:#e2e8f0;}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.container{max-width:1400px;margin:0 auto;padding:20px}
+header{background:linear-gradient(135deg,var(--primary) 0%,#1e3a8a 100%);color:white;padding:24px;border-radius:16px;margin-bottom:24px;box-shadow:0 10px 40px rgba(30,64,175,0.2);display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+header img{height:50px;width:auto;filter:brightness(0) invert(1)}
+header h1{font-size:26px;margin-bottom:4px}header p{opacity:0.9;font-size:14px}
+.wizard{display:flex;gap:8px;margin-bottom:24px;background:#f1f5f9;padding:8px;border-radius:12px;overflow-x:auto}
+.wizard-step{white-space:nowrap}
+.wizard-step{padding:10px 24px;border-radius:8px;font-size:13px;font-weight:600;color:#64748b;border:none;background:transparent;cursor:default}
+.wizard-step.active{background:white;color:var(--primary);box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.wizard-step.done{color:var(--secondary)}
+.step-section{display:none}
+.step-section.active{display:block;animation:fadeIn 0.4s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.upload-card{background:var(--card);border-radius:16px;padding:24px;margin-bottom:16px;box-shadow:0 4px 20px rgba(0,0,0,0.05)}
+.upload-card h3{font-size:16px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.dropzone{border:2px dashed #cbd5e1;border-radius:12px;padding:24px;text-align:center;transition:all 0.3s;position:relative;min-height:120px;display:flex;flex-direction:column;justify-content:center;align-items:center}
+.dropzone:hover{border-color:var(--primary);background:#f8fafc}
+.dropzone.dragover{border-color:var(--primary);background:#eff6ff}
+.file-list{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.file-item{display:flex;justify-content:space-between;align-items:center;background:#f8fafc;padding:8px 12px;border-radius:8px;font-size:13px}
+.file-item button{background:none;border:none;color:var(--danger);cursor:pointer;font-size:16px;padding:0 4px}
+.config-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:12px}
+.form-group label{display:block;font-size:12px;font-weight:600;margin-bottom:6px;color:#475569}
+.form-group select{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:white}
+.form-group select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
+.status-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.status-tag{padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid transparent;user-select:none}
+.status-tag.include{background:#dcfce7;color:#166534;border-color:#166534}
+.status-tag.exclude{background:#fee2e2;color:#991b1b;border-color:#991b1b}
+.debug-box{background:#fefce8;border:1px solid #fef08a;border-radius:12px;padding:16px;margin:16px 0;font-size:13px}
+.debug-box h4{color:#854d0e;margin-bottom:8px;font-size:14px}
+.debug-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed #fef08a}
+.debug-row:last-child{border-bottom:none}
+.channel-preview{background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:16px;margin:16px 0;font-size:13px}
+.channel-preview h4{color:#0369a1;margin-bottom:8px;font-size:14px}
+.channel-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed #bae6fd}
+.channel-row:last-child{border-bottom:none;font-weight:600}
+.mapping-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px}
+.mapping-table th{background:#f8fafc;padding:10px 12px;text-align:left;font-weight:600;color:#475569;border-bottom:2px solid var(--border)}
+.mapping-table td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.mapping-table tr:hover{background:#f8fafc}
+.mapping-table select{width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px}
+.confidence-bar{height:6px;border-radius:3px;background:#e2e8f0;overflow:hidden;width:60px;display:inline-block;vertical-align:middle;margin-right:6px}
+.confidence-fill{height:100%;border-radius:3px}
+.conf-high{background:var(--secondary)}.conf-med{background:var(--warning)}.conf-low{background:var(--danger)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;border:none;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s}
+.btn-primary{background:var(--primary);color:white}.btn-primary:hover{background:#1e3a8a;transform:translateY(-1px);box-shadow:0 4px 12px rgba(30,64,175,0.3)}
+.btn-secondary{background:var(--secondary);color:white}.btn-secondary:hover{background:#047857}
+.btn-warning{background:var(--warning);color:white}
+.btn-outline{background:white;border:2px solid var(--border);color:#475569}.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+.btn-group{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.tabs{display:flex;gap:4px;background:#f1f5f9;padding:6px;border-radius:12px;margin-bottom:20px;overflow-x:auto}
+.tab-btn{padding:10px 20px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;color:#64748b;border:none;background:transparent;white-space:nowrap;transition:all 0.2s}
+.tab-btn.active{background:white;color:var(--primary);box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.tab-panel{display:none}
+.tab-panel.active{display:block;animation:fadeIn 0.4s}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:24px}
+.kpi-card{background:var(--card);border-radius:16px;padding:20px;box-shadow:0 4px 20px rgba(0,0,0,0.05);position:relative;overflow:hidden}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%}
+.kpi-card.blue::before{background:var(--primary)}.kpi-card.green::before{background:var(--secondary)}.kpi-card.red::before{background:var(--danger)}.kpi-card.orange::before{background:var(--warning)}.kpi-card.purple::before{background:#7c3aed}.kpi-card.teal::before{background:#0891b2}.kpi-card.pink::before{background:#db2777}
+.kpi-label{font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
+.kpi-value{font-size:22px;font-weight:700;margin:6px 0;color:var(--text)}
+.kpi-change{font-size:12px;font-weight:600}.kpi-change.positive{color:var(--secondary)}.kpi-change.negative{color:var(--danger)}
+.card{background:var(--card);border-radius:16px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,0.05);margin-bottom:20px}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.card-title{font-size:18px;font-weight:700}
+.chart-container{position:relative;height:320px}
+.chart-container.small{height:260px}
+.table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border);max-height:500px;overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f8fafc;padding:12px 16px;text-align:left;font-weight:600;color:#475569;border-bottom:1px solid var(--border);white-space:nowrap;position:sticky;top:0;z-index:10}
+td{padding:12px 16px;border-bottom:1px solid var(--border)}
+tr:hover{background:#f8fafc}
+.badge{display:inline-flex;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600}
+.badge-success{background:#dcfce7;color:#166534}.badge-warning{background:#fef3c7;color:#92400e}.badge-danger{background:#fee2e2;color:#991b1b}.badge-info{background:#dbeafe;color:#1e40af}
+.analysis-box{background:linear-gradient(135deg,#eff6ff 0%,#f0f9ff 100%);border-left:4px solid var(--primary);padding:20px;border-radius:12px;margin-bottom:16px}
+.analysis-box h4{color:var(--primary);margin-bottom:8px;font-size:15px}
+.analysis-box ul{margin-left:18px;font-size:14px;color:#475569}
+.analysis-box li{margin-bottom:6px}
+.recommendation-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.rec-card{background:white;border-radius:12px;padding:20px;border:1px solid var(--border);transition:all 0.2s}
+.rec-card:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,0.08)}
+.rec-card h4{font-size:14px;color:var(--primary);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.rec-card p{font-size:13px;color:#64748b;line-height:1.6}
+.priority-high{border-left:4px solid var(--danger)}.priority-medium{border-left:4px solid var(--warning)}.priority-low{border-left:4px solid var(--secondary)}
+.loading{display:none;position:fixed;inset:0;background:rgba(255,255,255,0.9);z-index:1000;justify-content:center;align-items:center;flex-direction:column}
+.loading.active{display:flex}
+.spinner{width:50px;height:50px;border:4px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.log-box{background:#f8fafc;border-radius:8px;padding:12px;font-family:monospace;font-size:12px;max-height:150px;overflow-y:auto;margin-top:10px;border:1px solid var(--border)}
+.hidden{display:none!important}
+@media(max-width:768px){
+.container{padding:12px}
+header{flex-direction:column;align-items:flex-start;padding:16px;gap:12px}
+header img{height:36px}
+header h1{font-size:18px}
+header p{font-size:12px}
+.wizard{overflow-x:auto;gap:4px;padding:6px}
+.wizard-step{padding:8px 12px;font-size:11px;white-space:nowrap}
+.upload-card{padding:16px}
+.upload-card h3{font-size:14px}
+.config-grid{grid-template-columns:1fr}
+.dropzone{padding:20px 16px}
+.btn{padding:10px 16px;font-size:13px}
+.kpi-grid{grid-template-columns:1fr 1fr;gap:8px}
+.kpi-card{padding:14px}
+.kpi-value{font-size:18px}
+.tabs{flex-wrap:nowrap;overflow-x:scroll;padding:4px}
+.tab-btn{padding:8px 14px;font-size:12px}
+.table-wrap{max-height:400px}
+th,td{padding:8px 10px;font-size:12px}
+.mapping-table th,.mapping-table td{padding:8px 10px;font-size:12px}
+.card{padding:16px}
+.card-title{font-size:15px}
+.recommendation-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<img src="data:image/png;base64,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" alt="BMH Logo">
+<div>
+<h1>Ad-BerbagiKebaikan</h1>
+<p>Laporan Iklan & Donasi | Channel ID | Campaign Mapping</p>
+</div>
+<div style="margin-left:auto">
+<button class="btn btn-outline" onclick="clearState()" style="background:rgba(255,255,255,0.15);color:white;border-color:rgba(255,255,255,0.3);font-size:12px;padding:8px 14px">🗑️ Ganti Data</button>
+</div>
+</header>
+
+<div class="wizard" id="wizard">
+<div class="wizard-step active" id="wiz-1">1️⃣ Upload & Config</div>
+<div class="wizard-step" id="wiz-2">2️⃣ Review Mapping</div>
+<div class="wizard-step" id="wiz-3">3️⃣ Dashboard</div>
+</div>
+
+<div class="step-section active" id="step-1">
+<div class="upload-card">
+<h3 style="display:flex;flex-wrap:wrap;align-items:center;gap:6px">📊 Upload Data Iklan Meta <span style="font-size:12px;color:#64748b;font-weight:400">(multiple file / beda akun OK)</span></h3>
+<div style="position:relative;margin-bottom:12px">
+<input type="file" id="inputIklan" multiple accept=".xlsx,.xls,.csv,.txt" onchange="handleFiles(this.files,'iklan')" style="position:absolute;opacity:0;width:0.1px;height:0.1px;overflow:hidden;z-index:-1">
+<label for="inputIklan" class="btn btn-outline" style="display:flex;justify-content:center;width:100%;cursor:pointer">📁 Pilih File Iklan</label>
+</div>
+<div class="dropzone" id="dropIklan" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDrop(event,'iklan')">
+<div style="font-size:28px;margin-bottom:8px">📥</div>
+<div style="font-weight:600;font-size:14px">Atau drop file di sini</div>
+<div style="font-size:12px;color:#64748b;margin-top:4px">.xlsx / .csv / .txt</div>
+</div>
+<div class="file-list" id="listIklan"></div>
+</div>
+
+<div class="upload-card">
+<h3>💰 Upload Data Donasi Website <span style="font-size:12px;color:#64748b;font-weight:400">(multiple file / beda web OK)</span></h3>
+<div style="position:relative;margin-bottom:12px">
+<input type="file" id="inputDonasi" multiple accept=".xlsx,.xls,.csv,.txt" onchange="handleFiles(this.files,'donasi')" style="position:absolute;opacity:0;width:0.1px;height:0.1px;overflow:hidden;z-index:-1">
+<label for="inputDonasi" class="btn btn-outline" style="display:flex;justify-content:center;width:100%;cursor:pointer">📁 Pilih File Donasi</label>
+</div>
+<div class="dropzone" id="dropDonasi" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDrop(event,'donasi')">
+<div style="font-size:28px;margin-bottom:8px">📥</div>
+<div style="font-weight:600;font-size:14px">Atau drop file di sini</div>
+<div style="font-size:12px;color:#64748b;margin-top:4px">.xlsx / .csv / .txt</div>
+</div>
+<div class="file-list" id="listDonasi"></div>
+</div>
+
+<div class="upload-card">
+<h3>⚙️ Konfigurasi Kolom</h3>
+<div class="config-grid">
+<div class="form-group"><label>📌 Campaign (Iklan)</label><select id="colCampaign"><option>-- Upload dulu --</option></select></div>
+<div class="form-group"><label>🎨 Ad Name (Iklan)</label><select id="colAdName"><option>-- Upload dulu --</option></select></div>
+<div class="form-group"><label>💰 Amount Spent (Iklan)</label><select id="colBudget"><option>-- Upload dulu --</option></select></div>
+<div class="form-group"><label>🕌 Program (Donasi)</label><select id="colProgram"><option>-- Upload dulu --</option></select></div>
+<div class="form-group"><label>💵 Nominal Donasi</label><select id="colNominal"><option>-- Upload dulu --</option></select></div>
+<div class="form-group"><label>📅 Tanggal Donasi</label><select id="colTanggal"><option>-- Upload dulu --</option></select></div>
+<div class="form-group"><label>📊 Status Donasi</label><select id="colStatus"><option>-- Upload dulu --</option></select></div>
+<div class="form-group"><label>👤 Fundraiser Name</label><select id="colFundraiser"><option>-- Upload dulu --</option></select></div>
+<div class="form-group"><label>📅 Tanggal Iklan (opsional)</label><select id="colTanggalIklan"><option>-- Opsional --</option></select></div>
+</div>
+<div style="margin-top:16px;display:none">
+<div class="status-tags" id="statusTags"></div>
+</div>
+<div class="btn-group">
+<button class="btn btn-secondary" onclick="loadSample()">🧪 Load Sample</button>
+<button class="btn btn-primary" onclick="goToMapping()" id="btnMapping" disabled>🔍 Lanjut ke Mapping →</button>
+<button class="btn btn-outline" onclick="resetAll()">🔄 Reset</button>
+</div>
+<div class="log-box hidden" id="logStep1"></div>
+</div>
+</div>
+
+<div class="step-section" id="step-2">
+<div class="upload-card">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+<h3>🔗 Review Mapping: Campaign → Program</h3>
+<span style="font-size:13px;color:#64748b">Ganti dropdown = Donasi & Nominal langsung update</span>
+</div>
+<div style="overflow-x:auto">
+<table class="mapping-table">
+<thead><tr><th>Campaign (Iklan)</th><th>→ Program (Donasi)</th><th>Confidence</th><th>Donasi</th><th>Nominal</th></tr></thead>
+<tbody id="mappingBody"></tbody>
+</table>
+</div>
+<div class="channel-preview" id="channelPreview" style="display:none">
+<h4>📡 Preview Channel (dari Fundraiser Name)</h4>
+<div id="channelPreviewContent"></div>
+</div>
+<div class="debug-box" id="debugSummary" style="display:none">
+<h4>📊 Preview Angka</h4>
+<div id="debugContent"></div>
+</div>
+<div class="btn-group">
+<button class="btn btn-outline" onclick="backToUpload()">← Kembali</button>
+<button class="btn btn-primary" onclick="generateDashboard()">🚀 Generate Dashboard</button>
+</div>
+</div>
+</div>
+
+<div id="laporanList" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9998;width:90%;max-width:600px;max-height:70vh;overflow-y:auto;background:white;border:1px solid #e2e8f0;border-radius:12px;padding:16px;box-shadow:0 20px 60px rgba(0,0,0,0.2)">
+<button id="closeLaporanList" style="position:sticky;top:0;float:right;background:transparent;border:none;font-size:18px;cursor:pointer;color:#64748b;line-height:1">✕</button>
+</div>
+
+<div class="step-section" id="step-3">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:12px;padding:10px 14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px">
+<div style="flex:1;min-width:200px">
+<label style="font-size:12px;color:#1e40af;font-weight:600;display:block;margin-bottom:4px">📁 Nama Laporan</label>
+<input id="periodeName" type="text" placeholder="contoh: April 2026" style="width:100%;padding:6px 10px;border:1px solid #93c5fd;border-radius:6px;font-size:13px"/>
+</div>
+<div style="display:flex;gap:8px;align-items:flex-end;padding-bottom:2px">
+<button onclick="simpanKeServer()" style="padding:8px 16px;background:#1e40af;color:white;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">☁️ Simpan ke Server</button>
+<button onclick="muatDariServer()" style="padding:8px 16px;background:#059669;color:white;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">📥 Muat dari Server</button>
+</div>
+<div id="serverStatus" style="font-size:12px;color:#64748b;min-width:180px"></div>
+</div>
+<div class="tabs">
+<button class="tab-btn active" data-tab="ringkasan" onclick="switchTab('ringkasan')">📋 Ringkasan</button>
+<button class="tab-btn" data-tab="harian" onclick="switchTab('harian')">📅 Harian</button>
+<button class="tab-btn" data-tab="campaign" onclick="switchTab('campaign')">🎯 Campaign</button>
+<button class="tab-btn" data-tab="program" onclick="switchTab('program')">🕌 Program</button>
+<button class="tab-btn" data-tab="konten" onclick="switchTab('konten')">🎨 Konten</button>
+<button class="tab-btn" data-tab="channel" onclick="switchTab('channel')">📡 Channel</button>
+<button class="tab-btn" data-tab="forecast" onclick="switchTab('forecast')">🔮 Forecast</button>
+</div>
+
+<div class="tab-panel active" id="panel-ringkasan">
+
+<div class="kpi-grid">
+<div class="kpi-card blue"><div class="kpi-label">💰 Spent (Rp)</div><div class="kpi-value" id="kpiSpent">Rp0</div><div class="kpi-change">Total Budget Iklan</div></div>
+<div class="kpi-card green"><div class="kpi-label">✅ Sukses All</div><div class="kpi-value" id="kpiSuksesAll">Rp0</div><div class="kpi-change">Semua Channel</div></div>
+<div class="kpi-card teal"><div class="kpi-label">⏳ Pending All</div><div class="kpi-value" id="kpiPendingAll">Rp0</div><div class="kpi-change">Semua Channel</div></div>
+<div class="kpi-card purple"><div class="kpi-label">✅ Sukses Iklan</div><div class="kpi-value" id="kpiSuksesMeta">Rp0</div><div class="kpi-change">Iklan Matched</div></div>
+<div class="kpi-card pink"><div class="kpi-label">⏳ Pending Iklan</div><div class="kpi-value" id="kpiPendingMeta">Rp0</div><div class="kpi-change">Iklan Matched</div></div>
+<div class="kpi-card orange"><div class="kpi-label">🎯 ROAS Sukses Iklan</div><div class="kpi-value" id="kpiRoasIklan">0x</div><div class="kpi-change">Sukses Iklan / Spent</div></div>
+<div class="kpi-card red"><div class="kpi-label">📊 ROAS All Iklan</div><div class="kpi-value" id="kpiRoasTotal">0x</div><div class="kpi-change">All Matched / Spent</div></div>
+<div class="kpi-card green"><div class="kpi-label">📈 Jumlah Donasi</div><div class="kpi-value" id="kpiJumlah">0</div><div class="kpi-change" id="kpiAvg">Avg: Rp0</div></div>
+</div>
+<div class="card"><div class="card-header"><div class="card-title">📈 Trend Donasi vs Budget</div></div><div class="chart-container"><canvas id="chartTrend"></canvas></div></div>
+<div class="analysis-box"><h4>🧠 Analisa Performa</h4><ul id="analisaList"></ul></div>
+<div class="card"><div class="card-header"><div class="card-title">💡 Rekomendasi</div></div><div class="recommendation-grid" id="rekomendasiGrid"></div></div>
+</div>
+
+<div class="tab-panel" id="panel-harian">
+<div class="card"><div class="card-header"><div class="card-title">📅 Rekap Harian (Aggregate per Hari)</div><button class="btn btn-secondary" onclick="exportTable('tableHarian','Rekap_Harian')">📥 Export</button></div>
+<div class="table-wrap"><table id="tableHarian"><thead><tr><th>Tanggal</th><th>Donasi</th><th>Nominal</th><th>Budget</th><th>ROAS</th><th>CPA</th><th>Status</th></tr></thead><tbody></tbody></table></div></div>
+<div class="card"><div class="card-header"><div class="card-title">📊 Visualisasi Harian</div></div><div class="chart-container"><canvas id="chartHarianVisual"></canvas></div></div>
+</div>
+
+<div class="tab-panel" id="panel-campaign">
+<div class="card"><div class="card-header"><div class="card-title">🎯 Per Campaign (Matched Only)</div><button class="btn btn-secondary" onclick="exportTable('tableCampaign','Rekap_Campaign')">📥 Export</button></div>
+<div class="chart-container small"><canvas id="chartCampaign"></canvas></div>
+<div class="table-wrap" style="margin-top:20px"><table id="tableCampaign"><thead><tr><th>Campaign</th><th>Akun Iklan</th><th>Donasi</th><th>Nominal</th><th>Budget</th><th>ROAS</th><th>Status</th></tr></thead><tbody></tbody></table></div></div>
+</div>
+
+<div class="tab-panel" id="panel-program">
+<div class="card"><div class="card-header"><div class="card-title">🕌 Semua Program (Iklan + Non-Iklan)</div><button class="btn btn-secondary" onclick="exportTable('tableProgram','Rekap_Program')">📥 Export</button></div>
+<div style="font-size:12px;color:#64748b;margin-bottom:12px">Program yang tidak diiklanin tetap tampil (scroll ke bawah)</div>
+<div class="chart-container small"><canvas id="chartProgram"></canvas></div>
+<div class="table-wrap" style="margin-top:20px"><table id="tableProgram"><thead><tr><th>Program</th><th>Donasi</th><th>Nominal</th><th>Avg Nominal</th></tr></thead><tbody></tbody></table></div></div>
+</div>
+
+<div class="tab-panel" id="panel-konten">
+<div class="card"><div class="card-header"><div class="card-title">🎨 Semua Konten/Ad (Scrollable)</div><button class="btn btn-secondary" onclick="exportTable('tableKonten','Rekap_Konten')">📥 Export</button></div>
+<div style="font-size:12px;color:#64748b;margin-bottom:12px">Semua konten dari semua campaign — scroll ke bawah untuk lihat lebih banyak</div>
+<div class="chart-container small"><canvas id="chartKonten"></canvas></div>
+<div class="table-wrap" style="margin-top:20px"><table id="tableKonten"><thead><tr><th>Konten</th><th>Campaign</th><th>Akun Iklan</th><th>Donasi</th><th>Nominal</th><th>ROAS</th><th>Efektivitas</th></tr></thead><tbody></tbody></table></div></div>
+</div>
+
+<div class="tab-panel" id="panel-channel">
+<div class="card"><div class="card-header"><div class="card-title">📡 Per Channel (Fundraiser Name)</div><button class="btn btn-secondary" onclick="exportTable('tableChannel','Rekap_Channel')">📥 Export</button></div>
+<div style="background:#f0f9ff;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:#1e40af">
+<strong>Aturan:</strong> "berbagi kebaikan" = Iklan | "drm"/"drm baitul maal hidayatullah" = WhatsApp | Blank = Organik | "Baitul Maal Hidayatullah" exact = Exclude
+</div>
+<div class="chart-container small"><canvas id="chartChannel"></canvas></div>
+<div class="table-wrap" style="margin-top:20px"><table id="tableChannel"><thead><tr><th>Channel</th><th>Donasi</th><th>Nominal</th><th>Avg Donasi</th></tr></thead><tbody></tbody></table></div></div>
+</div>
+
+<div class="tab-panel" id="panel-forecast">
+<div class="card"><div class="card-header"><div class="card-title">🔮 Forecasting (Moving Average 7 Hari)</div></div>
+<div class="chart-container"><canvas id="chartForecast"></canvas></div></div>
+<div class="analysis-box"><h4>📊 Prediksi</h4><ul id="forecastList"></ul></div>
+</div>
+</div>
+</div>
+
+<div class="loading" id="loading"><div class="spinner"></div><p style="margin-top:16px;color:#475569;font-weight:600">Processing...</p></div>
+
+<script>
+let rawIklan=[],rawDonasi=[],matchedData=[],charts={};
+let filesIklan=[],filesDonasi=[];
+let allHeadersIklan=new Set(),allHeadersDonasi=new Set();
+let campaignToProgram={};
+let includeStatuses=new Set(['success','paid','completed','settlement','berhasil','sukses','pending','waiting','menunggu','unpaid']);
+let validDonasiCache=[];
+let serverChartData=null; // chart data loaded from server for atasan
+
+const rupiah=n=>'Rp'+(n||0).toLocaleString('id-ID');
+const pct=n=>(n||0).toFixed(1)+'%';
+
+function log(id,txt){
+const el=document.getElementById(id);
+if(!el)return;
+el.classList.remove('hidden');
+el.innerHTML+=`<div>${new Date().toLocaleTimeString()}: ${txt}</div>`;
+el.scrollTop=el.scrollHeight;
+}
+
+function handleDrop(e,type){e.preventDefault();e.stopPropagation();e.currentTarget.classList.remove('dragover');handleFiles(e.dataTransfer.files,type)}
+
+function handleFiles(files,type){
+console.log('handleFiles called:',type,files.length,'files');
+const list=type==='iklan'?filesIklan:filesDonasi;
+const listEl=type==='iklan'?document.getElementById('listIklan'):document.getElementById('listDonasi');
+if(!listEl){console.error('List element not found for',type);return;}
+Array.from(files).forEach(file=>{
+console.log('Processing file:',file.name,file.size);
+if(list.some(f=>f.name===file.name)){log('logStep1','Skip dup: '+file.name);return;}
+list.push(file);
+const item=document.createElement('div');item.className='file-item';
+item.innerHTML=`<span>📄 ${file.name} <span style="color:#64748b;font-size:11px">(${(file.size/1024).toFixed(1)} KB)</span></span><button onclick="removeFile('${type}','${file.name}',this)" title="Hapus">×</button>`;
+listEl.appendChild(item);
+readFile(file,type);
+});
+}
+
+function removeFile(type,name,btn){
+const list=type==='iklan'?filesIklan:filesDonasi;
+const idx=list.findIndex(f=>f.name===name);
+if(idx>-1){list.splice(idx,1);btn.parentElement.remove();}
+if(type==='iklan')rawIklan=rawIklan.filter(r=>r._sourceFile!==name);
+else rawDonasi=rawDonasi.filter(r=>r._sourceFile!==name);
+updateSelects();
+}
+
+function readFile(file,type){
+log('logStep1','Reading: '+file.name);
+const ext=file.name.toLowerCase().split('.').pop();
+const reader=new FileReader();
+reader.onload=e=>{
+try{
+let rows=[],headers=[];
+if(ext==='csv'||ext==='txt'){
+const text=e.target.result;
+const lines=text.split(/[\r\n]+/).filter(l=>l.trim());
+if(!lines.length){log('logStep1','ERROR: File kosong');return;}
+let delim=',';
+const firstLine=lines[0];
+if(firstLine.includes(';')&&!firstLine.includes(','))delim=';';
+else if(firstLine.includes('\t')&&firstLine.split('\t').length>firstLine.split(',').length)delim='\t';
+headers=firstLine.split(delim).map(h=>String(h).trim().replace(/^["']|["']$/g,''));
+rows=lines.slice(1).map(line=>{
+const vals=line.split(delim).map(v=>v.trim().replace(/^["']|["']$/g,''));
+const obj={};headers.forEach((h,i)=>obj[h]=vals[i]);return obj;
+}).filter(r=>Object.values(r).some(v=>v!==undefined&&v!==''));
+log('logStep1','CSV: '+delim+' delim, '+headers.length+' cols, '+rows.length+' rows');
+}else{
+const data=new Uint8Array(e.target.result);
+const wb=XLSX.read(data,{type:'array',cellDates:true});
+if(!wb.SheetNames.length){log('logStep1','ERROR: Excel kosong');return;}
+const sheet=wb.Sheets[wb.SheetNames[0]];
+const json=XLSX.utils.sheet_to_json(sheet,{header:1,raw:false});
+if(!json.length||json.length<2){log('logStep1','ERROR: Sheet kosong');return;}
+headers=json[0].map(h=>String(h).trim());
+rows=json.slice(1).map(row=>{
+const obj={};headers.forEach((h,i)=>obj[h]=row[i]);return obj;
+}).filter(r=>Object.values(r).some(v=>v!==undefined&&v!==''));
+log('logStep1','Excel: '+headers.length+' cols, '+rows.length+' rows');
+}
+rows.forEach(r=>{
+r._sourceFile=file.name;
+// Extract akun dari kata terakhir nama file sebelum ekstensi
+// "laporan-iklan-1-19-mei-akun-berke.xlsx" → "berke"
+// "laporan-iklan-april-berke.xlsx" → "berke"
+const baseName=file.name.replace(/\.[^.]+$/,'');
+r._akun=baseName.split('-').pop()||baseName.substring(0,15);
+});
+if(type==='iklan'){rawIklan=rawIklan.concat(rows);headers.forEach(h=>{if(h&&!h.startsWith('_'))allHeadersIklan.add(h);});}
+else{rawDonasi=rawDonasi.concat(rows);headers.forEach(h=>{if(h&&!h.startsWith('_'))allHeadersDonasi.add(h);});}
+setTimeout(updateSelects,150);
+}catch(err){log('logStep1','ERROR: '+err.message);console.error(err);}
+};
+if(ext==='csv'||ext==='txt')reader.readAsText(file);else reader.readAsArrayBuffer(file);
+}
+
+function parseNominal(val){
+if(!val)return 0;
+let str=String(val).trim();
+str=str.replace(/^rp\.?\s*/i,'').replace(/^rp\s*/i,'');
+str=str.replace(/\s/g,'');
+const dots=(str.match(/\./g)||[]).length;
+const commas=(str.match(/,/g)||[]).length;
+if(dots>0 && commas>0){
+    const lastDot=str.lastIndexOf('.');
+    const lastComma=str.lastIndexOf(',');
+    if(lastComma>lastDot){str=str.replace(/\./g,'').replace(',','.');}
+    else{str=str.replace(/,/g,'');}
+}else if(dots>=2){
+    str=str.replace(/\./g,'');
+}else if(commas>=2){
+    str=str.replace(/,/g,'');
+}else if(dots===1 && commas===0){
+    const parts=str.split('.');
+    if(parts[1].length===3 && parts[0].length>1){str=str.replace('.','');}
+}else if(commas===1 && dots===0){
+    const parts=str.split(',');
+    if(parts[1].length===3 && parts[0].length>1){str=str.replace(',','');}
+    else{str=str.replace(',','.');}
+}
+const num=parseFloat(str);
+return isNaN(num)?0:num;
+}
+
+function extractDateOnly(val){
+if(!val)return '';
+if(val instanceof Date)return val.toISOString().split('T')[0];
+let str=String(val).trim();
+if(/^\d{4}-\d{2}-\d{2}/.test(str))return str.substring(0,10);
+const mSlash=str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+if(mSlash){
+    const d=mSlash[1].padStart(2,'0');
+    const mo=mSlash[2].padStart(2,'0');
+    const y=mSlash[3];
+    return y+'-'+mo+'-'+d;
+}
+const monthNames={'jan':'01','feb':'02','mar':'03','apr':'04','may':'05','jun':'06',
+    'jul':'07','aug':'08','sep':'09','oct':'10','nov':'11','dec':'12',
+    'januari':'01','februari':'02','maret':'03','april':'04','mei':'05',
+    'juni':'06','juli':'07','agustus':'08','september':'09','oktober':'10',
+    'november':'11','desember':'12'};
+const cleanStr=str.replace(/\s*-\s*\d{1,2}:\d{2}.*/,'');
+const mLocale=cleanStr.match(/([A-Za-z]{3,})\s+(\d{1,2}),?\s+(\d{4})/);
+if(mLocale){
+    const monKey=mLocale[1].toLowerCase().substring(0,3);
+    const mon=monthNames[monKey];
+    if(mon){
+        const day=mLocale[2].padStart(2,'0');
+        const year=mLocale[3];
+        return year+'-'+mon+'-'+day;
+    }
+}
+const mLocale2=str.match(/^(\d{1,2})[\s\-]([A-Za-z]{3,})[\s\-](\d{4})/);
+if(mLocale2){
+    const monKey=mLocale2[2].toLowerCase().substring(0,3);
+    const mon=monthNames[monKey];
+    if(mon){
+        const day=mLocale2[1].padStart(2,'0');
+        const year=mLocale2[3];
+        return year+'-'+mon+'-'+day;
+    }
+}
+const d=new Date(str);
+if(!isNaN(d))return d.toISOString().split('T')[0];
+return str;
+}
+
+function updateSelects(){
+const fill=(id,headers,keywords)=>{
+const sel=document.getElementById(id);
+if(!sel)return;
+const arr=Array.from(headers).filter(h=>h&&!h.startsWith('_')&&h!=='undefined'&&h!=='null');
+sel.innerHTML='<option value="">-- Pilih --</option>'+arr.map(h=>`<option value="${h}">${h}</option>`).join('');
+let bestIdx=-1,bestScore=0;
+arr.forEach((h,i)=>{
+const lower=h.toLowerCase().trim();
+let score=0;
+keywords.forEach((kw,ki)=>{
+if(lower===kw)score+=10-(ki*0.3);
+else if(lower.includes(kw))score+=5-(ki*0.3);
+});
+if(score>bestScore){bestScore=score;bestIdx=i;}
+});
+// Use selectedIndex (reliable) instead of .value (can fail with special chars)
+if(bestIdx>=0)sel.selectedIndex=bestIdx+1;
+};
+if(rawIklan.length){
+fill('colCampaign',allHeadersIklan,['campaign name','campaign','nama campaign','kampanye']);
+fill('colAdName',allHeadersIklan,['ad name','adname','nama iklan','creative','iklan']);
+fill('colBudget',allHeadersIklan,['amount spent','spent','budget','biaya','cost','amount']);
+fill('colTanggalIklan',allHeadersIklan,['date','tanggal','timestamp','waktu','tgl','reporting starts','day','hari']);
+}
+if(rawDonasi.length){
+fill('colProgram',allHeadersDonasi,['program','campaign','kampanye','produk','nama program']);
+fill('colNominal',allHeadersDonasi,['amount','nominal','jumlah','total','donasi','nilai','uang']);
+fill('colTanggal',allHeadersDonasi,['date','tanggal','timestamp','waktu','tgl','created']);
+fill('colStatus',allHeadersDonasi,['status','state','kondisi','payment status']);
+fill('colFundraiser',allHeadersDonasi,['fundraiser name','fundraiser','fundraiser_name','nama fundraiser','source']);
+const statCol=document.getElementById('colStatus').value;
+if(statCol){
+const uniqueStats=[...new Set(rawDonasi.map(r=>String(r[statCol]||'').toLowerCase().trim()).filter(s=>s))];
+console.log('Status detected:', uniqueStats.join(', '));
+}
+}
+document.getElementById('btnMapping').disabled=!(rawIklan.length&&rawDonasi.length);
+}
+
+function rebuildAll(){
+document.getElementById('loading').classList.add('active');
+setTimeout(()=>{
+buildRingkasan();
+buildHarian();
+buildCampaign();
+buildProgram();
+buildKonten();
+buildChannel();
+buildForecast();
+document.getElementById('loading').classList.remove('active');
+},300);
+}
+
+function identifyChannel(fundraiserName){
+const val=String(fundraiserName||'').trim().toLowerCase().replace(/\s+/g,' ');
+if(val==='baitul maal hidayatullah')return 'EXCLUDE';
+if(val.includes('berbagi')&&val.includes('kebaikan'))return 'Iklan';
+if(val==='drm'||(val.includes('drm')&&val.includes('baitul')))return 'WhatsApp';
+if(!val||val===''||val==='null'||val==='undefined'||val==='-'||val==='nan')return 'Organik';
+return 'Organik';
+}
+
+function goToMapping(){
+const campCol=document.getElementById('colCampaign').value;
+const adCol=document.getElementById('colAdName').value;
+const progCol=document.getElementById('colProgram').value;
+const nomCol=document.getElementById('colNominal').value;
+const tglCol=document.getElementById('colTanggal').value;
+const statCol=document.getElementById('colStatus').value;
+const fundCol=document.getElementById('colFundraiser').value;
+if(!campCol||!adCol||!progCol||!nomCol||!tglCol){alert('Lengkapi kolom Campaign, Ad, Program, Nominal, Tanggal dulu!');return;}
+
+validDonasiCache=rawDonasi.filter(r=>{
+if(fundCol){const ch=identifyChannel(r[fundCol]);if(ch==='EXCLUDE')return false;}
+return true;
+});
+
+const campaigns=[...new Set(rawIklan.map(r=>String(r[campCol]||'').trim()).filter(c=>c))];
+const programs=[...new Set(validDonasiCache.map(r=>String(r[progCol]||'').trim()).filter(p=>p))];
+
+const tbody=document.getElementById('mappingBody');
+tbody.innerHTML='';
+
+campaigns.forEach(camp=>{
+let bestProg='',bestScore=0;
+programs.forEach(prog=>{
+const score=similarity(camp,prog);
+if(score>bestScore){bestScore=score;bestProg=prog;}
+});
+const confClass=bestScore>0.7?'conf-high':bestScore>0.4?'conf-med':'conf-low';
+const confPct=Math.round(bestScore*100);
+
+const tr=document.createElement('tr');
+tr.dataset.campaign=camp;
+tr.innerHTML=`<td><strong>${camp}</strong></td>
+<td><select class="prog-select" onchange="recalcMappingRow(this)"><option value="">-- Pilih Program --</option>${programs.map(p=>`<option value="${p}" ${p===bestProg?'selected':''}>${p}</option>`).join('')}</select></td>
+<td><div class="confidence-bar"><div class="confidence-fill ${confClass}" style="width:${confPct}%"></div></div> <span style="font-size:11px;color:#64748b">${confPct}%</span></td>
+<td class="cell-donasi">-</td>
+<td class="cell-nominal">-</td>`;
+tbody.appendChild(tr);
+});
+
+recalcAllMapping();
+
+const chStats={Iklan:{count:0,nom:0},WhatsApp:{count:0,nom:0},Organik:{count:0,nom:0},EXCLUDE:{count:0,nom:0}};
+rawDonasi.forEach(r=>{
+const ch=fundCol?identifyChannel(r[fundCol]):'Organik';
+const nom=parseNominal(r[nomCol]);
+if(chStats[ch]){chStats[ch].count++;chStats[ch].nom+=nom;}
+});
+
+const chPreview=document.getElementById('channelPreview');
+chPreview.style.display='block';
+document.getElementById('channelPreviewContent').innerHTML=
+`<div class="channel-row"><span>Iklan (berbagi kebaikan)</span><span>${chStats.Iklan.count} donasi, ${rupiah(chStats.Iklan.nom)}</span></div>
+<div class="channel-row"><span>WhatsApp (drm)</span><span>${chStats.WhatsApp.count} donasi, ${rupiah(chStats.WhatsApp.nom)}</span></div>
+<div class="channel-row"><span>Organik (blank)</span><span>${chStats.Organik.count} donasi, ${rupiah(chStats.Organik.nom)}</span></div>
+<div class="channel-row"><span>Excluded (Baitul Maal)</span><span style="color:var(--danger)">${chStats.EXCLUDE.count} donasi, ${rupiah(chStats.EXCLUDE.nom)}</span></div>
+<div class="channel-row"><span>Total Valid</span><span>${validDonasiCache.length} donasi</span></div>`;
+
+let totalBudget=0;
+const budgetCol=document.getElementById('colBudget').value;
+rawIklan.forEach(r=>totalBudget+=parseNominal(r[budgetCol]));
+let totalNom=0;
+validDonasiCache.forEach(r=>totalNom+=parseNominal(r[nomCol]));
+
+const debug=document.getElementById('debugSummary');
+debug.style.display='block';
+document.getElementById('debugContent').innerHTML=
+`<div class="debug-row"><span>Total Budget (Iklan)</span><strong>${rupiah(totalBudget)}</strong></div>
+<div class="debug-row"><span>Total Donasi (valid)</span><strong>${rupiah(totalNom)}</strong></div>
+<div class="debug-row"><span>Jumlah Donasi Valid</span><strong>${validDonasiCache.length}</strong></div>
+<div class="debug-row"><span>ROAS Preview</span><strong>${totalBudget?(totalNom/totalBudget).toFixed(2):'N/A'}x</strong></div>`;
+
+document.getElementById('step-1').classList.remove('active');
+document.getElementById('step-2').classList.add('active');
+document.getElementById('wiz-1').classList.remove('active');document.getElementById('wiz-1').classList.add('done');
+document.getElementById('wiz-2').classList.add('active');
+}
+
+function recalcMappingRow(selectEl){
+const tr=selectEl.closest('tr');
+const prog=selectEl.value;
+const progCol=document.getElementById('colProgram').value;
+const nomCol=document.getElementById('colNominal').value;
+let count=0,totalNom=0;
+if(prog){
+validDonasiCache.forEach(r=>{
+if(String(r[progCol]||'').trim()===prog){count++;totalNom+=parseNominal(r[nomCol]);}
+});
+}
+tr.querySelector('.cell-donasi').textContent=count;
+tr.querySelector('.cell-nominal').textContent=rupiah(totalNom);
+}
+
+function recalcAllMapping(){
+document.querySelectorAll('#mappingBody tr').forEach(tr=>{
+const sel=tr.querySelector('.prog-select');
+if(sel)recalcMappingRow(sel);
+});
+}
+
+function backToUpload(){
+document.getElementById('step-2').classList.remove('active');
+document.getElementById('step-1').classList.add('active');
+document.getElementById('wiz-2').classList.remove('active');
+document.getElementById('wiz-1').classList.add('active');document.getElementById('wiz-1').classList.remove('done');
+}
+
+function generateDashboard(){
+const rows=document.querySelectorAll('#mappingBody tr');
+campaignToProgram={};
+let emptyCount=0;
+rows.forEach(tr=>{
+const camp=tr.dataset.campaign;
+const prog=tr.querySelector('.prog-select').value;
+if(prog){campaignToProgram[camp]=prog;}
+else{emptyCount++;}
+});
+if(emptyCount>0){if(!confirm(`${emptyCount} campaign belum dipasangkan. Lanjutkan?`))return;}
+
+document.getElementById('loading').classList.add('active');
+setTimeout(()=>{
+processMatching();
+buildRingkasan();
+buildHarian();
+buildCampaign();
+buildProgram();
+buildKonten();
+buildChannel();
+buildForecast();
+document.getElementById('loading').classList.remove('active');
+document.getElementById('step-2').classList.remove('active');
+document.getElementById('step-3').classList.add('active');
+document.getElementById('wiz-2').classList.remove('active');document.getElementById('wiz-2').classList.add('done');
+document.getElementById('wiz-3').classList.add('active');
+},600);
+}
+
+function normalize(str){if(!str)return'';return String(str).toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();}
+
+function similarity(s1,s2){
+s1=normalize(s1);s2=normalize(s2);
+if(!s1||!s2)return 0;
+if(s1===s2)return 1;
+if(s1.includes(s2)||s2.includes(s1))return 0.9;
+const w1=s1.split(' ').filter(w=>w.length>0);
+const w2=s2.split(' ').filter(w=>w.length>0);
+const abbrev={'qurban':['qrb','urb','qur'],'braille':['brl','brlquran','brl Quran'],'kafarat':['kfr','kafar'],'quran':['qrn','qur'],'santri':['snt','santr'],'yatim':['ytm','yat'],'dhuafa':['dhf','dha'],'ybmh':['bmh','baitul'],'kebaikan':['keb','kebaik'],'hidayatullah':['hidayat','hidayah']};
+const expand=(tokens)=>{
+    const e=new Set(tokens);
+    tokens.forEach(t=>{
+        for(const[full,shorts] of Object.entries(abbrev)){
+            if(t===full||shorts.includes(t)){e.add(full);shorts.forEach(s=>e.add(s));}
+        }
+    });
+    return e;
+};
+const e1=expand(w1);const e2=expand(w2);
+const inter=[...e1].filter(w=>e2.has(w)).length;
+const union=new Set([...e1,...e2]).size;
+return union>0?inter/union:0;
+}
+
+function getIklanMatchedData(){
+return matchedData.filter(r=>r._matchedCampaign!=='Unmatched'&&r._channel==='Iklan');
+}
+
+function processMatching(){
+const campCol=document.getElementById('colCampaign').value;
+const adCol=document.getElementById('colAdName').value;
+const budgetCol=document.getElementById('colBudget').value;
+const progCol=document.getElementById('colProgram').value;
+const nomCol=document.getElementById('colNominal').value;
+const tglCol=document.getElementById('colTanggal').value;
+const statCol=document.getElementById('colStatus').value;
+const fundCol=document.getElementById('colFundraiser').value;
+
+matchedData=[];
+let matchCount=0;
+
+validDonasiCache.forEach(don=>{
+const prog=String(don[progCol]||'').trim();
+const nominal=parseNominal(don[nomCol]);
+const tgl=extractDateOnly(don[tglCol]);
+const channel=fundCol?identifyChannel(don[fundCol]):'Organik';
+const status=statCol?String(don[statCol]||'').toLowerCase().trim():'success';
+
+let matchedCamp='Unmatched';
+for(const [camp,mappedProg] of Object.entries(campaignToProgram)){
+if(similarity(prog,mappedProg)>0.5){matchedCamp=camp;break;}
+}
+
+if(matchedCamp!=='Unmatched')matchCount++;
+
+matchedData.push({
+...don,
+_matchedCampaign:matchedCamp,
+_matchedAd:'',
+_amountSpent:0,
+_impressions:0,
+_clicks:0,
+_nominal:nominal,
+_tanggal:tgl,
+_program:prog,
+_channel:channel,
+_status:status
+});
+});
+console.log('Matched: '+matchCount+'/'+validDonasiCache.length);
+}
+
+function groupBy(arr,key,agg){const groups={};arr.forEach(item=>{const k=item[key]||'Unknown';if(!groups[k])groups[k]=[];groups[k].push(item);});return Object.entries(groups).map(([k,v])=>agg(k,v));}
+
+function buildRingkasan(){
+const campCol=document.getElementById('colCampaign').value;
+const budgetCol=document.getElementById('colBudget').value;
+const statCol=document.getElementById('colStatus').value;
+const fundCol=document.getElementById('colFundraiser').value;
+const nomCol=document.getElementById('colNominal').value;
+
+let totalBudget=0;
+rawIklan.forEach(r=>totalBudget+=parseNominal(r[budgetCol]));
+
+// ALL CHANNELS
+let suksesAll=0,pendingAll=0;
+let jumlahSukses=0,jumlahPending=0;
+
+rawDonasi.forEach(r=>{
+if(fundCol){const ch=identifyChannel(r[fundCol]);if(ch==='EXCLUDE')return;}
+const nom=parseNominal(r[nomCol]);
+const st=statCol?String(r[statCol]||'').toLowerCase().trim():'success';
+
+if(st==='success'||st==='paid'||st==='completed'||st==='settlement'||st==='berhasil'||st==='sukses'){
+suksesAll+=nom;
+jumlahSukses++;
+}else if(st==='pending'||st==='waiting'||st==='menunggu'||st==='unpaid'){
+pendingAll+=nom;
+jumlahPending++;
+}
+});
+
+// IKLAN MATCHED — split sukses vs pending
+let suksesMeta=0,pendingMeta=0;
+let jumlahSuksesMeta=0,jumlahPendingMeta=0;
+let totalMatchedIklan=0;
+
+const iklanData=getIklanMatchedData();
+iklanData.forEach(r=>{
+totalMatchedIklan+=r._nominal;
+const st=r._status;
+if(st==='success'||st==='paid'||st==='completed'||st==='settlement'||st==='berhasil'||st==='sukses'){
+suksesMeta+=r._nominal;
+jumlahSuksesMeta++;
+}else if(st==='pending'||st==='waiting'||st==='menunggu'||st==='unpaid'){
+pendingMeta+=r._nominal;
+jumlahPendingMeta++;
+}
+});
+
+const avgDonasi=(jumlahSukses+jumlahPending)?(suksesAll+pendingAll)/(jumlahSukses+jumlahPending):0;
+const roasSuksesIklan=totalBudget?suksesMeta/totalBudget:0;
+const roasAllIklan=totalBudget?totalMatchedIklan/totalBudget:0;
+const roasTotalChannels=totalBudget?suksesAll/totalBudget:0;
+
+const unmatched=matchedData.filter(r=>r._matchedCampaign==='Unmatched'&&r._channel==='Iklan').length;
+const totalIklan=matchedData.filter(r=>r._channel==='Iklan').length;
+const unmatchedPct=totalIklan?(unmatched/totalIklan*100):0;
+
+let excludedCount=0;
+rawDonasi.forEach(r=>{if(fundCol&&identifyChannel(r[fundCol])==='EXCLUDE')excludedCount++;});
+
+document.getElementById('kpiSpent').textContent=rupiah(totalBudget);
+document.getElementById('kpiSuksesAll').textContent=rupiah(suksesAll)+' ('+jumlahSukses+')';
+document.getElementById('kpiPendingAll').textContent=rupiah(pendingAll)+' ('+jumlahPending+')';
+document.getElementById('kpiSuksesMeta').textContent=rupiah(suksesMeta)+' ('+jumlahSuksesMeta+')';
+document.getElementById('kpiPendingMeta').textContent=rupiah(pendingMeta)+' ('+jumlahPendingMeta+')';
+document.getElementById('kpiRoasIklan').textContent=roasSuksesIklan.toFixed(2)+'x';
+document.getElementById('kpiRoasTotal').textContent=roasAllIklan.toFixed(2)+'x';
+document.getElementById('kpiJumlah').textContent=(jumlahSukses+jumlahPending).toLocaleString('id-ID');
+document.getElementById('kpiAvg').textContent='Avg: '+rupiah(avgDonasi);
+
+const daily=groupBy(getIklanMatchedData(),'_tanggal',(k,v)=>({tgl:k,donasi:v.reduce((s,r)=>s+r._nominal,0),budget:0})).sort((a,b)=>new Date(a.tgl)-new Date(b.tgl));
+const tglIklanCol=document.getElementById('colTanggalIklan').value;
+if(tglIklanCol){
+    rawIklan.forEach(r=>{
+        const tgl=extractDateOnly(r[tglIklanCol]);
+        const day=daily.find(d=>d.tgl===tgl);
+        if(day)day.budget+=parseNominal(r[budgetCol]);
+    });
+}else{
+    const totalBudgetAll=rawIklan.reduce((s,r)=>s+parseNominal(r[budgetCol]),0);
+    const dayCount=daily.length;
+    if(dayCount>0){
+        const perDay=totalBudgetAll/dayCount;
+        daily.forEach(d=>d.budget=perDay);
+    }
+}
+
+renderChart('chartTrend','line',{
+labels:daily.map(d=>d.tgl),
+datasets:[
+{label:'Donasi',data:daily.map(d=>d.donasi),borderColor:'#059669',backgroundColor:'rgba(5,150,105,0.1)',fill:true,tension:0.4},
+{label:'Budget',data:daily.map(d=>d.budget),borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,0.05)',fill:true,tension:0.4}
+]});
+
+const analisa=[];
+const byProg=groupBy(getIklanMatchedData(),'_program',(k,v)=>({program:k,donasi:v.reduce((s,r)=>s+r._nominal,0),budget:0,count:v.length}));
+byProg.forEach(p=>{
+    p.budget=rawIklan.filter(r=>campaignToProgram[String(r[campCol]||'').trim()]===p.program).reduce((s,r)=>s+parseNominal(r[budgetCol]),0);
+});
+if(byProg.length){
+const bestProg=byProg.sort((a,b)=>b.donasi-a.donasi)[0];
+const worstProg=byProg.filter(p=>p.budget>0).sort((a,b)=>(a.donasi/a.budget)-(b.donasi/b.budget))[0];
+analisa.push('Program <strong>'+bestProg.program+'</strong> top performer: '+rupiah(bestProg.donasi)+'.');
+if(worstProg)analisa.push('<strong>'+worstProg.program+'</strong> efisiensi terendah (ROAS '+(worstProg.donasi/worstProg.budget).toFixed(2)+'x).');
+}
+analisa.push('Avg donasi/transaksi: <strong>'+rupiah(avgDonasi)+'</strong>.');
+analisa.push('ROAS Sukses Iklan: <strong>'+roasSuksesIklan.toFixed(2)+'x</strong> | ROAS All Iklan: <strong>'+roasAllIklan.toFixed(2)+'x</strong>.');
+if(jumlahPending>0)analisa.push('Ada <strong>'+jumlahPending+' donasi pending</strong> ('+rupiah(pendingAll)+') — follow up untuk konversi.');
+if(unmatched>0)analisa.push('<strong>'+unmatched+' donasi Iklan</strong> unmatched ('+unmatchedPct.toFixed(1)+'%) — cek mapping campaign.');
+if(excludedCount>0)analisa.push('<strong>'+excludedCount+' donasi</strong> di-exclude (Baitul Maal Hidayatullah).');
+
+document.getElementById('analisaList').innerHTML=analisa.map(a=>'<li>'+a+'</li>').join('');
+
+const recs=[
+{priority:'high',title:'🎯 Optimasi Budget',text:'Alihkan budget ke program dengan ROAS tertinggi.'},
+{priority:'medium',title:'📝 Creative Refresh',text:'Video/story-based creative biasanya outperform static image.'},
+{priority:'medium',title:'⏰ Timing',text:'Sesuaikan jadwal iklan dengan jam-jam emas donasi.'},
+{priority:'low',title:'📊 UTM Tracking',text:'Konsistenkan parameter UTM untuk akurasi matching ke depan.'},
+{priority:'high',title:'💰 Scaling',text:'Scale budget +20% tiap 3 hari jika ROAS Iklan stabil >5x.'}
+];
+document.getElementById('rekomendasiGrid').innerHTML=recs.map(r=>'<div class="rec-card priority-'+r.priority+'"><h4>'+r.title+'</h4><p>'+r.text+'</p></div>').join('');
+}
+
+function buildHarian(){
+const campCol=document.getElementById('colCampaign').value;
+const budgetCol=document.getElementById('colBudget').value;
+const tglIklanCol=document.getElementById('colTanggalIklan').value;
+
+const iklanData=getIklanMatchedData();
+
+const dailyGroups={};
+iklanData.forEach(r=>{
+const tgl=r._tanggal||'Unknown';
+if(!dailyGroups[tgl])dailyGroups[tgl]={donasi:0,nominal:0,budget:0};
+dailyGroups[tgl].donasi++;
+dailyGroups[tgl].nominal+=r._nominal;
+});
+
+// Budget: always from rawIklan (independent of status filter)
+if(tglIklanCol){
+    rawIklan.forEach(r=>{
+        const tgl=extractDateOnly(r[tglIklanCol]);
+        const budget=parseNominal(r[budgetCol]);
+        if(tgl){
+            if(!dailyGroups[tgl])dailyGroups[tgl]={donasi:0,nominal:0,budget:0};
+            dailyGroups[tgl].budget+=budget;
+        }
+    });
+}else{
+    // No ad date: distribute evenly across ALL dates that have any matchedData (not just iklanData)
+    const allDates=new Set();
+    matchedData.filter(r=>r._matchedCampaign!=='Unmatched').forEach(r=>allDates.add(r._tanggal));
+    const dayCount=allDates.size;
+
+    if(dayCount>0){
+        let totalBudget=0;
+        rawIklan.forEach(r=>totalBudget+=parseNominal(r[budgetCol]));
+        const perDay=totalBudget/dayCount;
+        allDates.forEach(tgl=>{
+            if(!dailyGroups[tgl])dailyGroups[tgl]={donasi:0,nominal:0,budget:0};
+            dailyGroups[tgl].budget+=perDay;
+        });
+    }
+}
+
+const data=Object.entries(dailyGroups).map(([tgl,v])=>({
+tgl:tgl,
+donasi:v.donasi,
+nominal:v.nominal,
+budget:v.budget,
+roas:v.budget?(v.nominal/v.budget).toFixed(2):0,
+cpa:v.donasi?Math.round(v.budget/v.donasi):0
+})).sort((a,b)=>new Date(a.tgl)-new Date(b.tgl));
+
+let totalDonasi=0,totalNominal=0;
+data.forEach(d=>{totalDonasi+=d.donasi;totalNominal+=d.nominal;});
+// Total budget dari rawIklan (sama dengan Ringkasan & Campaign)
+let totalBudget=0;
+rawIklan.forEach(r=>totalBudget+=parseNominal(r[budgetCol]));
+const avgRoas=totalBudget?(totalNominal/totalBudget).toFixed(2):0;
+const avgCpa=totalDonasi?Math.round(totalBudget/totalDonasi):0;
+const statusLabel=avgRoas>3?'Optimal':avgRoas>1?'Break Even':'Loss';
+const statusClass=avgRoas>3?'badge-success':avgRoas>1?'badge-warning':'badge-danger';
+
+const rows=data.map(d=>'<tr><td>'+d.tgl+'</td><td>'+d.donasi+'</td><td>'+rupiah(d.nominal)+'</td><td>'+rupiah(d.budget)+'</td><td>'+d.roas+'x</td><td>'+rupiah(d.cpa)+'</td><td><span class="badge '+(d.roas>3?'badge-success':d.roas>1?'badge-warning':'badge-danger')+'">'+(d.roas>3?'Optimal':d.roas>1?'Break Even':'Loss')+'</span></td></tr>').join('');
+
+const totalRow='<tr style="background:#f8fafc;font-weight:700;border-top:2px solid #1e40af"><td><strong>TOTAL / RATA-RATA</strong></td><td><strong>'+totalDonasi+'</strong></td><td><strong>'+rupiah(totalNominal)+'</strong></td><td><strong>'+rupiah(totalBudget)+'</strong></td><td><strong>'+avgRoas+'x</strong></td><td><strong>'+rupiah(avgCpa)+'</strong></td><td><span class="badge '+statusClass+'"><strong>'+statusLabel+'</strong></span></td></tr>';
+
+document.querySelector('#tableHarian tbody').innerHTML=rows+totalRow;
+
+renderChart('chartHarianVisual','bar',{
+labels:data.map(d=>d.tgl),
+datasets:[
+{label:'Donasi Harian',data:data.map(d=>d.nominal),backgroundColor:'#059669'},
+{label:'Budget Harian',data:data.map(d=>d.budget),backgroundColor:'#dc2626'}
+]});
+}
+
+function buildCampaign(){
+const campCol=document.getElementById('colCampaign').value;
+const budgetCol=document.getElementById('colBudget').value;
+
+const campBudgets={};
+rawIklan.forEach(r=>{
+const camp=String(r[campCol]||'').trim();
+if(!camp)return;
+if(!campBudgets[camp])campBudgets[camp]=0;
+campBudgets[camp]+=parseNominal(r[budgetCol]);
+});
+
+const data=groupBy(getIklanMatchedData(),'_matchedCampaign',(k,v)=>({campaign:k,donasi:v.length,nominal:v.reduce((s,r)=>s+r._nominal,0),budget:campBudgets[k]||0})).sort((a,b)=>b.nominal-a.nominal);
+
+// Add akun info per campaign
+const campAkun={};
+rawIklan.forEach(r=>{
+const camp=String(r[campCol]||'').trim();
+if(!camp)return;
+if(!campAkun[camp]&&r._akun)campAkun[camp]=r._akun;
+});
+
+let totalDonasi=0,totalNominal=0;
+data.forEach(d=>{totalDonasi+=d.donasi;totalNominal+=d.nominal;});
+// Total budget dari rawIklan (konsisten dengan Ringkasan)
+let totalBudget=0;
+rawIklan.forEach(r=>totalBudget+=parseNominal(r[budgetCol]));
+const avgRoas=totalBudget?(totalNominal/totalBudget).toFixed(2):0;
+const statusLabel=avgRoas>3?'Optimal':avgRoas>1?'Break Even':'Loss';
+const statusClass=avgRoas>3?'badge-success':avgRoas>1?'badge-warning':'badge-danger';
+
+const rows=data.map(d=>{
+const roas=d.budget?(d.nominal/d.budget).toFixed(2):0;
+const akun=campAkun[d.campaign]||'—';
+return'<tr><td>'+d.campaign+'</td><td><span class="badge badge-info">'+akun+'</span></td><td>'+d.donasi+'</td><td>'+rupiah(d.nominal)+'</td><td>'+rupiah(d.budget)+'</td><td>'+roas+'x</td><td><span class="badge '+(roas>3?'badge-success':roas>1?'badge-warning':'badge-danger')+'">'+(roas>3?'Optimal':roas>1?'Break Even':'Loss')+'</span></td></tr>';
+}).join('');
+
+const totalRow='<tr style="background:#f8fafc;font-weight:700;border-top:2px solid #1e40af"><td><strong>TOTAL / RATA-RATA</strong></td><td><strong>—</strong></td><td><strong>'+totalDonasi+'</strong></td><td><strong>'+rupiah(totalNominal)+'</strong></td><td><strong>'+rupiah(totalBudget)+'</strong></td><td><strong>'+avgRoas+'x</strong></td><td><span class="badge '+statusClass+'"><strong>'+statusLabel+'</strong></span></td></tr>';
+
+document.querySelector('#tableCampaign tbody').innerHTML=rows+totalRow;
+renderChart('chartCampaign','bar',{labels:data.map(d=>d.campaign),datasets:[{label:'Donasi',data:data.map(d=>d.nominal),backgroundColor:'#059669'},{label:'Budget',data:data.map(d=>d.budget),backgroundColor:'#dc2626'}]});
+}
+
+function buildProgram(){
+const progCol=document.getElementById('colProgram').value;
+const nomCol=document.getElementById('colNominal').value;
+const fundCol=document.getElementById('colFundraiser').value;
+
+const allPrograms={};
+rawDonasi.forEach(r=>{
+if(fundCol&&identifyChannel(r[fundCol])==='EXCLUDE')return;
+const prog=String(r[progCol]||'').trim();
+if(!prog)return;
+if(!allPrograms[prog])allPrograms[prog]={count:0,nominal:0};
+allPrograms[prog].count++;
+allPrograms[prog].nominal+=parseNominal(r[nomCol]);
+});
+
+const data=Object.entries(allPrograms).map(([k,v])=>({program:k,...v})).sort((a,b)=>b.nominal-a.nominal);
+
+let totalCount=0,totalNominal=0;
+data.forEach(d=>{totalCount+=d.count;totalNominal+=d.nominal;});
+const totalAvg=totalCount?Math.round(totalNominal/totalCount):0;
+
+const rows=data.map(d=>{
+const avg=d.count?Math.round(d.nominal/d.count):0;
+return'<tr><td>'+d.program+'</td><td>'+d.count+'</td><td>'+rupiah(d.nominal)+'</td><td>'+rupiah(avg)+'</td></tr>';
+}).join('');
+
+const totalRow='<tr style="background:#f8fafc;font-weight:700;border-top:2px solid #1e40af"><td><strong>TOTAL / RATA-RATA</strong></td><td><strong>'+totalCount+'</strong></td><td><strong>'+rupiah(totalNominal)+'</strong></td><td><strong>'+rupiah(totalAvg)+'</strong></td></tr>';
+
+document.querySelector('#tableProgram tbody').innerHTML=rows+totalRow;
+
+renderChart('chartProgram','doughnut',{labels:data.map(d=>d.program),datasets:[{data:data.map(d=>d.nominal),backgroundColor:['#1e40af','#059669','#d97706','#dc2626','#7c3aed','#0891b2','#be185d','#4338ca','#0d9488','#b45309']}]})
+}
+
+function buildKonten(){
+const campCol=document.getElementById('colCampaign').value;
+const adCol=document.getElementById('colAdName').value;
+const budgetCol=document.getElementById('colBudget').value;
+
+const allAds={};
+const adAkun={};
+rawIklan.forEach(r=>{
+const camp=String(r[campCol]||'').trim();
+const ad=String(r[adCol]||'').trim();
+if(!ad)return;
+const key=camp+'||'+ad;
+if(!allAds[key]){
+allAds[key]={campaign:camp,ad:ad,budget:0,clicks:0,impressions:0,donasi:0,nominal:0};
+}
+allAds[key].budget+=parseNominal(r[budgetCol]);
+allAds[key].clicks+=parseFloat(r['Clicks (All)']||r['Clicks']||r['Link clicks']||r['clicks']||r['Click']||0);
+allAds[key].impressions+=parseFloat(r['Impressions']||r['impressions']||r['Imp']||0);
+if(r._akun&&!adAkun[key])adAkun[key]=r._akun;
+});
+
+const campDonasi={};
+getIklanMatchedData().forEach(r=>{
+if(!campDonasi[r._matchedCampaign])campDonasi[r._matchedCampaign]={donasi:0,nominal:0};
+campDonasi[r._matchedCampaign].donasi++;
+campDonasi[r._matchedCampaign].nominal+=r._nominal;
+});
+
+// Performance-indexed attribution: CTR-based weighting
+Object.values(allAds).forEach(ad=>{
+const camp=ad.campaign;
+const cDon=campDonasi[camp];
+if(!cDon||cDon.nominal===0)return;
+
+// Calculate performance score (CTR + budget blend)
+const ctr=ad.impressions>0?(ad.clicks/ad.impressions):0;
+const budgetShare=ad.budget/Math.max(1,Object.values(allAds).filter(a=>a.campaign===camp).reduce((s,a)=>s+a.budget,0));
+
+// Weight: 70% budget, 30% CTR performance (gives variety)
+const performanceScore=(budgetShare*0.7)+(ctr*0.3);
+
+const totalScore=Object.values(allAds).filter(a=>a.campaign===camp).reduce((s,a)=>{
+    const aCtr=a.impressions>0?(a.clicks/a.impressions):0;
+    const aBudgetShare=a.budget/Math.max(1,Object.values(allAds).filter(b=>b.campaign===camp).reduce((x,b)=>x+b.budget,0));
+    return s+(aBudgetShare*0.7)+(aCtr*0.3);
+},0);
+
+if(totalScore===0)return;
+const share=performanceScore/totalScore;
+ad.donasi=Math.round(cDon.donasi*share);
+ad.nominal=Math.round(cDon.nominal*share);
+});
+
+// Fix rounding drift
+Object.entries(campDonasi).forEach(([camp,cDon])=>{
+const campAds=Object.values(allAds).filter(a=>a.campaign===camp);
+const actualTotal=campAds.reduce((s,a)=>s+a.nominal,0);
+const diff=cDon.nominal-actualTotal;
+if(diff!==0&&campAds.length>0){
+    campAds.sort((a,b)=>b.nominal-a.nominal);
+    campAds[0].nominal+=diff;
+}
+});
+
+const data=Object.values(allAds).sort((a,b)=>b.nominal-a.nominal);
+
+let totalDonasi=0,totalNominal=0;
+data.forEach(d=>{totalDonasi+=d.donasi;totalNominal+=d.nominal;});
+// Total budget dari rawIklan (konsisten dengan Ringkasan)
+let totalBudget=0;
+rawIklan.forEach(r=>totalBudget+=parseNominal(r[budgetCol]));
+const avgRoas=totalBudget?(totalNominal/totalBudget).toFixed(2):0;
+const avgEf=avgRoas>10?'Sangat Efektif':avgRoas>5?'Efektif':avgRoas>2?'Cukup':totalDonasi>0?'Cukup':'Kurang';
+const efClass=avgRoas>5?'badge-success':avgRoas>2?'badge-warning':totalDonasi>0?'badge-warning':'badge-danger';
+
+const rows=data.map(d=>{
+const roas=d.budget?(d.nominal/d.budget).toFixed(2):0;
+const ef=roas>10?'Sangat Efektif':roas>5?'Efektif':roas>2?'Cukup':d.donasi>0?'Cukup':'Kurang';
+const akun=adAkun[d.campaign+'||'+d.ad]||'—';
+return'<tr><td>'+d.ad+'</td><td>'+d.campaign+'</td><td><span class="badge badge-info">'+akun+'</span></td><td>'+d.donasi+'</td><td>'+rupiah(d.nominal)+'</td><td>'+roas+'x</td><td><span class="badge '+(roas>5?'badge-success':roas>2?'badge-warning':d.donasi>0?'badge-warning':'badge-danger')+'">'+ef+'</span></td></tr>';
+}).join('');
+
+const totalRow='<tr style="background:#f8fafc;font-weight:700;border-top:2px solid #1e40af"><td><strong>TOTAL / RATA-RATA</strong></td><td><strong></strong></td><td><strong>—</strong></td><td><strong>'+totalDonasi+'</strong></td><td><strong>'+rupiah(totalNominal)+'</strong></td><td><strong>'+avgRoas+'x</strong></td><td><span class="badge '+efClass+'"><strong>'+avgEf+'</strong></span></td></tr>';
+
+document.querySelector('#tableKonten tbody').innerHTML=rows+totalRow;
+
+renderChart('chartKonten','bar',{labels:data.slice(0,10).map(d=>d.ad.substring(0,20)),datasets:[{label:'Nominal',data:data.slice(0,10).map(d=>d.nominal),backgroundColor:'#1e40af'},{label:'Budget',data:data.slice(0,10).map(d=>d.budget),backgroundColor:'#f59e0b'}]});
+}
+
+function buildChannel(){
+const fundCol=document.getElementById('colFundraiser').value;
+const nomCol=document.getElementById('colNominal').value;
+
+const chStats={Iklan:{count:0,nom:0},WhatsApp:{count:0,nom:0},Organik:{count:0,nom:0}};
+
+rawDonasi.forEach(r=>{
+if(fundCol){const ch=identifyChannel(r[fundCol]);if(ch==='EXCLUDE')return;}
+const nom=parseNominal(r[nomCol]);
+const ch=fundCol?identifyChannel(r[fundCol]):'Organik';
+if(chStats[ch]){chStats[ch].count++;chStats[ch].nom+=nom;}
+});
+
+const channels=[];
+if(chStats.Iklan.count>0)channels.push({channel:'Iklan',donasi:chStats.Iklan.count,nominal:chStats.Iklan.nom});
+if(chStats.WhatsApp.count>0)channels.push({channel:'WhatsApp',donasi:chStats.WhatsApp.count,nominal:chStats.WhatsApp.nom});
+if(chStats.Organik.count>0)channels.push({channel:'Organik',donasi:chStats.Organik.count,nominal:chStats.Organik.nom});
+
+const data=channels.sort((a,b)=>b.nominal-a.nominal);
+const total=data.reduce((s,d)=>s+d.nominal,0);
+
+let totalDonasi=0,totalNominal=0;
+data.forEach(d=>{totalDonasi+=d.donasi;totalNominal+=d.nominal;});
+const avgDonasi=totalDonasi?Math.round(totalNominal/totalDonasi):0;
+
+const rows=data.map(d=>{
+const avg=d.donasi?(d.nominal/d.donasi):0;
+return'<tr><td><span class="badge '+(d.channel==='Iklan'?'badge-info':d.channel==='WhatsApp'?'badge-success':'badge-warning')+'">'+d.channel+'</span></td><td>'+d.donasi+'</td><td>'+rupiah(d.nominal)+'</td><td>'+rupiah(avg)+'</td></tr>';
+}).join('');
+
+const totalRow='<tr style="background:#f8fafc;font-weight:700;border-top:2px solid #1e40af"><td><strong>TOTAL / RATA-RATA</strong></td><td><strong>'+totalDonasi+'</strong></td><td><strong>'+rupiah(totalNominal)+'</strong></td><td><strong>'+rupiah(avgDonasi)+'</strong></td></tr>';
+
+document.querySelector('#tableChannel tbody').innerHTML=rows+totalRow;
+renderChart('chartChannel','bar',{labels:data.map(d=>d.channel),datasets:[{label:'Nominal',data:data.map(d=>d.nominal),backgroundColor:['#1e40af','#059669','#d97706']}]})
+}
+
+function buildForecast(){
+const daily=groupBy(getIklanMatchedData(),'_tanggal',(k,v)=>({tgl:k,nominal:v.reduce((s,r)=>s+r._nominal,0)})).sort((a,b)=>new Date(a.tgl)-new Date(b.tgl));
+if(daily.length<7){document.getElementById('forecastList').innerHTML='<li>Data harian kurang dari 7 hari, forecasting tidak akurat.</li>';return;}
+
+const ma=[];
+for(let i=0;i<daily.length;i++){
+let sum=0,cnt=0;
+for(let j=Math.max(0,i-6);j<=i;j++){sum+=daily[j].nominal;cnt++;}
+ma.push({tgl:daily[i].tgl,actual:daily[i].nominal,ma:sum/cnt});
+}
+
+const n=ma.length;
+let sumX=0,sumY=0,sumXY=0,sumX2=0;
+for(let i=0;i<n;i++){
+sumX+=i;sumY+=ma[i].actual;sumXY+=i*ma[i].actual;sumX2+=i*i;
+}
+const slope=(n*sumXY-sumX*sumY)/(n*sumX2-sumX*sumX);
+const intercept=(sumY-slope*sumX)/n;
+
+const lastMA=ma[ma.length-1].ma;
+const lastIdx=n-1;
+const forecast=[];
+for(let i=1;i<=7;i++){
+const trendComp=slope*(lastIdx+i)+intercept;
+const blended=(lastMA*0.6+trendComp*0.4);
+forecast.push({tgl:'H+'+i,predicted:Math.max(0,Math.round(blended))});
+}
+
+renderChart('chartForecast','line',{
+labels:[...ma.map(d=>d.tgl),...forecast.map(d=>d.tgl)],
+datasets:[
+{label:'Aktual',data:[...ma.map(d=>d.actual),...Array(7).fill(null)],borderColor:'#1e40af',backgroundColor:'transparent',spanGaps:true},
+{label:'MA-7',data:ma.map(d=>d.ma),borderColor:'#8b5cf6',borderDash:[5,5],backgroundColor:'transparent',pointRadius:0},
+{label:'Trend',data:ma.map((d,i)=>intercept+slope*i),borderColor:'#10b981',borderDash:[2,2],backgroundColor:'transparent',pointRadius:0},
+{label:'Prediksi',data:[...Array(ma.length).fill(null),...forecast.map(d=>d.predicted)],borderColor:'#d97706',borderDash:[10,5],backgroundColor:'transparent'}
+]
+});
+
+const avgLast7=ma.slice(-7).reduce((s,d)=>s+d.ma,0)/7;
+const trendDir=slope>0?'NAIK 📈':slope<0?'TURUN 📉':'STABIL ➡️';
+document.getElementById('forecastList').innerHTML=
+'<li>Moving Average 7 hari: <strong>'+rupiah(avgLast7)+'</strong>/hari.</li>'+
+'<li>Trend: <strong>'+trendDir+'</strong> (slope: '+slope.toFixed(0)+'/hari).</li>'+
+'<li>Prediksi 7 hari ke depan: <strong>'+rupiah(forecast.reduce((s,f)=>s+f.predicted,0))+'</strong> (total).</li>'+
+'<li>Rekomendasi: '+(slope>0?'Scale budget +15-20%.':slope<-1000?'Evaluasi creative & audience segera.':'Pertahankan strategy.')+'</li>';
+}
+
+function renderChart(id,type,data){
+const ctx=document.getElementById(id).getContext('2d');
+if(charts[id])charts[id].destroy();
+charts[id]=new Chart(ctx,{type:type,data:data,options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:20}}},scales:type!=='doughnut'?{y:{beginAtZero:true,grid:{color:'#f1f5f9'}},x:{grid:{display:false}}}:{}}})
+}
+
+function switchTab(tabName){
+document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));
+document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+document.querySelectorAll('.tab-btn').forEach(t=>{if(t.dataset.tab===tabName)t.classList.add('active');});
+document.getElementById('panel-'+tabName).classList.add('active');
+setTimeout(()=>{
+// Kalau ada serverChartData (atasan load dari server), rebuild dari sana
+if(serverChartData){
+const cd=serverChartData;
+const renderFromServer=(chartId,key)=>{
+const c=cd[key];
+if(c?.labels?.length)renderChart(chartId,c.datasets?.[0]?.data?.length?chartId.includes('Program')?'doughnut':'bar':'bar',c);
+};
+if(tabName==='harian'){
+if(cd.chartHarian)renderChart('chartHarianVisual',cd.chartHarian.datasets?.[0]?'bar':'bar',cd.chartHarian);
+else if(cd.harian?.length)renderChart('chartHarianVisual','bar',{labels:cd.harian.map(d=>d.tgl),datasets:[{label:'Nominal',data:cd.harian.map(d=>d.nominal),backgroundColor:'#059669'}]});
+}else if(tabName==='campaign'&&cd.chartCampaign){
+renderChart('chartCampaign','bar',cd.chartCampaign);
+}else if(tabName==='program'&&cd.chartProgram){
+renderChart('chartProgram','doughnut',cd.chartProgram);
+}else if(tabName==='channel'&&cd.chartChannel){
+renderChart('chartChannel','bar',cd.chartChannel);
+}else if(tabName==='konten'&&cd.chartKonten){
+renderChart('chartKonten','bar',cd.chartKonten);
+}else if(tabName==='forecast'&&cd.chartForecast){
+renderChart('chartForecast','line',cd.chartForecast);
+}else if(tabName==='ringkasan'){
+if(cd.chartTrend)renderChart('chartTrend','line',cd.chartTrend);
+else if(charts['chartTrend'])charts['chartTrend'].resize();
+}
+return;
+}
+// Staf dengan raw data — rebuild dari fungsi build
+if(tabName==='harian')buildHarian();
+else if(tabName==='campaign')buildCampaign();
+else if(tabName==='program')buildProgram();
+else if(tabName==='konten')buildKonten();
+else if(tabName==='channel')buildChannel();
+else if(tabName==='forecast')buildForecast();
+else if(tabName==='ringkasan'){if(charts['chartTrend'])charts['chartTrend'].resize();}
+},50);
+}
+
+function exportTable(tableId,filename){
+const table=document.getElementById(tableId);
+const wb=XLSX.utils.table_to_book(table,{sheet:"Sheet1"});
+XLSX.writeFile(wb,filename+".xlsx");
+}
+
+function loadSample(){
+rawIklan=[
+{"Campaign name":"Qurban 2026","Ad name":"pic Qurban santri","Amount spent (IDR)":"5.000.000","Impressions":150000,"Clicks":2500},
+{"Campaign name":"Qurban 2026","Ad name":"vid hati tenang","Amount spent (IDR)":"3.000.000","Impressions":90000,"Clicks":1800},
+{"Campaign name":"Qurban 2026","Ad name":"pic masjid","Amount spent (IDR)":"3.500.000","Impressions":100000,"Clicks":1500},
+{"Campaign name":"Qurban 2026","Ad name":"vid testimoni","Amount spent (IDR)":"4.000.000","Impressions":120000,"Clicks":2000},
+{"Campaign name":"Qurban 2026","Ad name":"pic anak yatim","Amount spent (IDR)":"2.500.000","Impressions":80000,"Clicks":1200},
+{"Campaign name":"Braille Quran","Ad name":"pic anak yatim","Amount spent (IDR)":"4.000.000","Impressions":80000,"Clicks":1200},
+{"Campaign name":"Braille Quran","Ad name":"vid hafiz","Amount spent (IDR)":"3.000.000","Impressions":70000,"Clicks":1100},
+{"Campaign name":"Kafarat","Ad name":"vid taubat","Amount spent (IDR)":"2.500.000","Impressions":60000,"Clicks":900},
+{"Campaign name":"Kafarat","Ad name":"pic puasa","Amount spent (IDR)":"2.000.000","Impressions":50000,"Clicks":750},
+{"Campaign name":"Kafarat","Ad name":"vid ramadhan","Amount spent (IDR)":"3.500.000","Impressions":90000,"Clicks":1400}
+];
+rawIklan.forEach(r=>r._sourceFile='sample-iklan.xlsx');
+allHeadersIklan=new Set(Object.keys(rawIklan[0]));
+
+const today=new Date();
+rawDonasi=[];
+const programs=["Qurban 2026","Qurban 2026","Braille Quran","Kafarat","Kafarat","Qurban 2026","Kafarat","Braille Quran","Qurban 2026","Kafarat"];
+const amounts=["500.000","750.000","0","300.000","250.000","600.000","450.000","350.000","800.000","200.000"];
+const fundraisers=["berbagi kebaikan","berbagi kebaikan","drm baitul maal hidayatullah","","drm","Baitul Maal Hidayatullah","berbagi kebaikan","","drm baitul maal hidayatullah",""];
+const statuses=["success","success","success","pending","success","success","waiting","success","success","pending"];
+for(let i=0;i<80;i++){
+const prog=programs[i%programs.length];
+const amt=amounts[i%amounts.length];
+const fund=fundraisers[i%fundraisers.length];
+const st=statuses[i%statuses.length];
+const date=new Date(today);date.setDate(date.getDate()-Math.floor(Math.random()*20));
+const fmt=Math.random()>0.5?date.toISOString().split('T')[0]:date.toLocaleDateString('id-ID',{year:'numeric',month:'short',day:'numeric'});
+rawDonasi.push({"Program":prog,"Amount":amt,"Date":fmt,"Status":st,"Fundraiser Name":fund});
+}
+rawDonasi.forEach(r=>r._sourceFile='sample-donasi.xlsx');
+allHeadersDonasi=new Set(Object.keys(rawDonasi[0]));
+
+updateSelects();
+log('logStep1','Sample loaded');
+}
+
+function resetAll(){
+rawIklan=[];rawDonasi=[];matchedData=[];filesIklan=[];filesDonasi=[];allHeadersIklan=new Set();allHeadersDonasi=new Set();campaignToProgram={};validDonasiCache=[];
+serverChartData=null;
+document.getElementById('listIklan').innerHTML='';document.getElementById('listDonasi').innerHTML='';
+document.getElementById('mappingBody').innerHTML='';
+['colCampaign','colAdName','colBudget','colTanggalIklan','colProgram','colNominal','colTanggal','colStatus','colFundraiser'].forEach(id=>{document.getElementById(id).innerHTML='<option>-- Upload dulu --</option>';});
+document.getElementById('statusTags').innerHTML='';
+document.getElementById('debugSummary').style.display='none';
+document.getElementById('channelPreview').style.display='none';
+document.getElementById('btnMapping').disabled=true;
+document.getElementById('step-1').classList.add('active');
+document.getElementById('step-2').classList.remove('active');
+document.getElementById('step-3').classList.remove('active');
+document.getElementById('wiz-1').classList.add('active');document.getElementById('wiz-1').classList.remove('done');
+document.getElementById('wiz-2').classList.remove('active');document.getElementById('wiz-2').classList.remove('done');
+document.getElementById('wiz-3').classList.remove('active');
+}
+
+// ============================================================
+// SERVER: Simpan & Muat dari Supabase
+// ============================================================
+function collectAgregatData(){
+const campCol=document.getElementById('colCampaign').value;
+const budgetCol=document.getElementById('colBudget').value;
+const nomCol=document.getElementById('colNominal').value;
+const fundCol=document.getElementById('colFundraiser').value;
+const statCol=document.getElementById('colStatus').value;
+
+let totalSpent=0;
+rawIklan.forEach(r=>totalSpent+=parseNominal(r[budgetCol]));
+
+let suksesAll=0,pendingAll=0,jumlahSukses=0,jumlahPending=0;
+rawDonasi.forEach(r=>{
+if(fundCol){const ch=identifyChannel(r[fundCol]);if(ch==='EXCLUDE')return;}
+const nom=parseNominal(r[nomCol]);
+const st=statCol?String(r[statCol]||'').toLowerCase().trim():'success';
+if(st==='success'||st==='paid'||st==='completed'||st==='settlement'||st==='berhasil'||st==='sukses'){suksesAll+=nom;jumlahSukses++;}
+else if(st==='pending'||st==='waiting'||st==='menunggu'||st==='unpaid'){pendingAll+=nom;jumlahPending++;}
+});
+
+const iklanData=getIklanMatchedData();
+let suksesMeta=0,pendingMeta=0,totalMatchedIklan=0;
+iklanData.forEach(r=>{
+totalMatchedIklan+=r._nominal;
+const st=r._status;
+if(st==='success'||st==='paid'||st==='completed'||st==='settlement'||st==='berhasil'||st==='sukses')suksesMeta+=r._nominal;
+else if(st==='pending'||st==='waiting'||st==='menunggu'||st==='unpaid')pendingMeta+=r._nominal;
+});
+
+const jumlahTotal=jumlahSukses+jumlahPending;
+const avgDonasi=jumlahTotal?(suksesAll+pendingAll)/jumlahTotal:0;
+const roasSukses=totalSpent?suksesMeta/totalSpent:0;
+const roasAll=totalSpent?totalMatchedIklan/totalSpent:0;
+
+// Simpan HTML tabel langsung dari DOM (sudah dirender oleh build functions)
+const htmlHarian=document.querySelector('#tableHarian tbody')?.innerHTML||'';
+const htmlCampaign=document.querySelector('#tableCampaign tbody')?.innerHTML||'';
+const htmlProgram=document.querySelector('#tableProgram tbody')?.innerHTML||'';
+const htmlChannel=document.querySelector('#tableChannel tbody')?.innerHTML||'';
+const htmlKonten=document.querySelector('#tableKonten tbody')?.innerHTML||'';
+const htmlAnalisa=document.getElementById('analisaList')?.innerHTML||'';
+const htmlRekomendasi=document.getElementById('rekomendasiGrid')?.innerHTML||'';
+const htmlForecast=document.getElementById('forecastList')?.innerHTML||'';
+
+// KPI text values
+const kpiSpent=document.getElementById('kpiSpent')?.textContent||'';
+const kpiSuksesAll=document.getElementById('kpiSuksesAll')?.textContent||'';
+const kpiPendingAll=document.getElementById('kpiPendingAll')?.textContent||'';
+const kpiSuksesMeta=document.getElementById('kpiSuksesMeta')?.textContent||'';
+const kpiPendingMeta=document.getElementById('kpiPendingMeta')?.textContent||'';
+const kpiRoasIklan=document.getElementById('kpiRoasIklan')?.textContent||'';
+const kpiRoasTotal=document.getElementById('kpiRoasTotal')?.textContent||'';
+const kpiJumlah=document.getElementById('kpiJumlah')?.textContent||'';
+const kpiAvg=document.getElementById('kpiAvg')?.textContent||'';
+
+// Chart data untuk trend
+const harian=[];
+document.querySelectorAll('#tableHarian tbody tr').forEach(tr=>{
+const tds=tr.querySelectorAll('td');
+if(tds.length>=3&&!tr.style.fontWeight){
+harian.push({tgl:tds[0]?.textContent||'',nominal:tds[2]?.textContent||'',budget:tds[3]?.textContent||''});
+}
+});
+
+return{
+total_spent:totalSpent,sukses_all:suksesAll,pending_all:pendingAll,
+sukses_iklan:suksesMeta,pending_iklan:pendingMeta,
+jumlah_donasi:jumlahTotal,avg_donasi:Math.round(avgDonasi),
+roas_sukses:parseFloat(roasSukses.toFixed(4)),roas_all:parseFloat(roasAll.toFixed(4)),
+per_harian:[{html:htmlHarian}],
+per_campaign:[{html:htmlCampaign}],
+per_program:[{html:htmlProgram}],
+per_channel:[{html:htmlChannel}],
+per_konten:[{html:htmlKonten}],
+per_kpi:{kpiSpent,kpiSuksesAll,kpiPendingAll,kpiSuksesMeta,kpiPendingMeta,kpiRoasIklan,kpiRoasTotal,kpiJumlah,kpiAvg,htmlAnalisa,htmlRekomendasi,htmlForecast},
+kpi_harian_chart:harian.slice(0,60),
+chart_data:collectChartData()
+};
+}
+
+function collectChartData(){
+// Ambil data langsung dari chart yang sudah dirender — identik dengan tampilan staf
+const getChartData=(id)=>{
+const c=charts[id];
+if(!c)return null;
+return{
+labels:c.data.labels,
+datasets:c.data.datasets.map(d=>({label:d.label,data:d.data,backgroundColor:d.backgroundColor,borderColor:d.borderColor}))
+};
+};
+
+// Harian dari chart chartHarianVisual
+const harianChart=getChartData('chartHarianVisual');
+// Juga simpan sebagai array untuk backward compat
+const harianMap={};
+getIklanMatchedData().forEach(r=>{
+if(!harianMap[r._tanggal])harianMap[r._tanggal]={tgl:r._tanggal,nominal:0,budget:0};
+harianMap[r._tanggal].nominal+=r._nominal;
+});
+const harianArr=Object.values(harianMap).sort((a,b)=>new Date(a.tgl)-new Date(b.tgl));
+
+// Forecast dari buildForecast data
+const forecastChart=getChartData('chartForecast');
+
+return{
+harian:harianArr,
+chartHarian:harianChart,
+chartCampaign:getChartData('chartCampaign'),
+chartProgram:getChartData('chartProgram'),
+chartChannel:getChartData('chartChannel'),
+chartKonten:getChartData('chartKonten'),
+chartForecast:forecastChart,
+chartTrend:getChartData('chartTrend')
+};
+}
+
+async function simpanKeServer(){
+const periode=document.getElementById('periodeName').value.trim();
+if(!periode){alert('Isi nama laporan dulu (contoh: April 2026)');return;}
+if(!matchedData.length){alert('Generate dashboard dulu sebelum simpan.');return;}
+const status=document.getElementById('serverStatus');
+status.textContent='⏳ Menyimpan...';status.style.color='#d97706';
+try{
+const d=collectAgregatData();
+
+// Step 1: upsert data numerik + KPI dulu (ringan)
+const base={periode,total_spent:d.total_spent,sukses_all:d.sukses_all,pending_all:d.pending_all,sukses_iklan:d.sukses_iklan,pending_iklan:d.pending_iklan,jumlah_donasi:d.jumlah_donasi,avg_donasi:d.avg_donasi,roas_sukses:d.roas_sukses,roas_all:d.roas_all,per_kpi:d.per_kpi,kpi_harian_chart:d.kpi_harian_chart,keterangan:'Saved '+new Date().toLocaleString('id-ID')};
+
+// Cek existing
+const{data:ex}=await supa.from('laporan_iklan').select('id').eq('periode',periode).maybeSingle();
+let rowId;
+if(ex){
+const r=await supa.from('laporan_iklan').update(base).eq('periode',periode).select('id').single();
+if(r.error)throw r.error;
+rowId=r.data.id;
+}else{
+const r=await supa.from('laporan_iklan').insert(base).select('id').single();
+if(r.error)throw r.error;
+rowId=r.data.id;
+}
+
+status.textContent='⏳ Menyimpan tabel (1/5)...';
+
+// Step 2: simpan HTML tabel satu per satu supaya tidak overload
+const htmlUpdates=[
+{col:'per_harian',val:[{html:d.per_harian[0]?.html||''}]},
+{col:'per_campaign',val:[{html:d.per_campaign[0]?.html||''}]},
+{col:'per_program',val:[{html:d.per_program[0]?.html||''}]},
+{col:'per_channel',val:[{html:d.per_channel[0]?.html||''}]},
+{col:'per_konten',val:[{html:d.per_konten[0]?.html||''}]},
+{col:'chart_data',val:d.chart_data||{}},
+];
+
+for(let i=0;i<htmlUpdates.length;i++){
+const{col,val}=htmlUpdates[i];
+status.textContent=`⏳ Menyimpan tabel (${i+2}/6)...`;
+const r=await supa.from('laporan_iklan').update({[col]:val}).eq('id',rowId);
+if(r.error){console.warn('Warning saving '+col,r.error);}
+}
+
+status.textContent='✅ Tersimpan! Atasan bisa lihat laporan "'+periode+'"';status.style.color='#059669';
+}catch(e){status.textContent='❌ Gagal: '+e.message;status.style.color='#dc2626';console.error(e);}
+}
+
+async function muatDariServer(){
+const listEl=document.getElementById('laporanList');
+const status=document.getElementById('serverStatus');
+status.textContent='⏳ Memuat daftar laporan...';status.style.color='#d97706';
+listEl.style.display='block';listEl.innerHTML='<div style="font-size:13px;color:#64748b">Memuat...</div>';
+console.log('muatDariServer: connecting to Supabase...');
+try{
+const{data,error}=await supa.from('laporan_iklan').select('id,periode,created_at,total_spent,jumlah_donasi,roas_sukses').order('created_at',{ascending:false});
+console.log('muatDariServer result:',{data,error});
+if(error)throw error;
+if(!data.length){listEl.innerHTML='<div style="font-size:13px;color:#64748b">Belum ada laporan tersimpan.</div>';status.textContent='';return;}
+status.textContent='';
+listEl.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-size:12px;font-weight:600;color:#1e40af">📋 Laporan tersimpan — klik untuk tampilkan:</div><button id="closeLaporanListBtn" style="background:transparent;border:none;font-size:18px;cursor:pointer;color:#64748b;line-height:1">✕</button></div>'+
+data.map(d=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:white;border:1px solid #e2e8f0;border-radius:6px;margin-bottom:6px">
+<div data-laporan-id="${d.id}" style="flex:1;cursor:pointer">
+<strong style="font-size:13px">${d.periode}</strong>
+<div style="font-size:11px;color:#64748b">${new Date(d.created_at).toLocaleString('id-ID')} · ${d.jumlah_donasi} donasi · ROAS ${parseFloat(d.roas_sukses||0).toFixed(2)}x</div>
+</div>
+<span style="font-size:12px;color:#1e40af;font-weight:600;margin:0 12px">Rp${(d.total_spent||0).toLocaleString('id-ID')}</span>
+<button data-delete-id="${d.id}" data-delete-periode="${d.periode}" style="padding:4px 10px;background:transparent;border:1px solid #fca5a5;color:#dc2626;border-radius:5px;font-size:11px;cursor:pointer">🗑️</button>
+</div>`).join('');
+setTimeout(()=>{
+document.getElementById('closeLaporanListBtn')?.addEventListener('click',()=>{
+listEl.style.display='none';
+});
+listEl.querySelectorAll('[data-laporan-id]').forEach(el=>{
+el.addEventListener('click',()=>{
+console.log('laporan clicked:',el.dataset.laporanId);
+tampilLaporan(el.dataset.laporanId);
+});
+});
+listEl.querySelectorAll('[data-delete-id]').forEach(el=>{
+el.addEventListener('click',async()=>{
+const id=el.dataset.deleteId;
+const periode=el.dataset.deletePeriode;
+if(!confirm(`Hapus laporan "${periode}"?`))return;
+el.textContent='⏳';el.disabled=true;
+const{error}=await supa.from('laporan_iklan').delete().eq('id',id);
+if(error){alert('Gagal hapus: '+error.message);el.textContent='🗑️';el.disabled=false;}
+else{el.closest('div[style]').remove();}
+});
+});
+console.log('listeners attached:',listEl.querySelectorAll('[data-laporan-id]').length);
+},100);
+}catch(e){listEl.innerHTML='<div style="font-size:13px;color:#dc2626">Gagal: '+e.message+'</div>';console.error(e);}
+}
+
+async function tampilLaporan(id){
+const status=document.getElementById('serverStatus');
+status.textContent='⏳ Memuat laporan...';status.style.color='#d97706';
+console.log('tampilLaporan called with id:',id);
+try{
+const{data,error}=await supa.from('laporan_iklan').select('*').eq('id',id).single();
+console.log('tampilLaporan fetch result:',{data:data?'ok':'null',error});
+if(error)throw error;
+console.log('showing step-3 first...');
+// Tampilkan step-3 DULU supaya semua DOM element ada
+document.getElementById('step-1').classList.remove('active');
+document.getElementById('step-2').classList.remove('active');
+document.getElementById('step-3').classList.add('active');
+document.getElementById('wiz-1').classList.add('done');document.getElementById('wiz-1').classList.remove('active');
+document.getElementById('wiz-2').classList.add('done');document.getElementById('wiz-2').classList.remove('active');
+document.getElementById('wiz-3').classList.add('active');
+document.getElementById('laporanList').style.display='none';
+document.getElementById('periodeName').value=data.periode;
+
+const kpi=data.per_kpi||{};
+
+// Inject KPI values
+if(kpi.kpiSpent)document.getElementById('kpiSpent').textContent=kpi.kpiSpent;
+if(kpi.kpiSuksesAll)document.getElementById('kpiSuksesAll').textContent=kpi.kpiSuksesAll;
+if(kpi.kpiPendingAll)document.getElementById('kpiPendingAll').textContent=kpi.kpiPendingAll;
+if(kpi.kpiSuksesMeta)document.getElementById('kpiSuksesMeta').textContent=kpi.kpiSuksesMeta;
+if(kpi.kpiPendingMeta)document.getElementById('kpiPendingMeta').textContent=kpi.kpiPendingMeta;
+if(kpi.kpiRoasIklan)document.getElementById('kpiRoasIklan').textContent=kpi.kpiRoasIklan;
+if(kpi.kpiRoasTotal)document.getElementById('kpiRoasTotal').textContent=kpi.kpiRoasTotal;
+if(kpi.kpiJumlah)document.getElementById('kpiJumlah').textContent=kpi.kpiJumlah;
+if(kpi.kpiAvg)document.getElementById('kpiAvg').textContent=kpi.kpiAvg;
+if(kpi.htmlAnalisa)document.getElementById('analisaList').innerHTML=kpi.htmlAnalisa;
+if(kpi.htmlRekomendasi)document.getElementById('rekomendasiGrid').innerHTML=kpi.htmlRekomendasi;
+if(kpi.htmlForecast)document.getElementById('forecastList').innerHTML=kpi.htmlForecast;
+
+// Inject tabel HTML langsung — identik dengan tampilan staf
+const th=document.querySelector('#tableHarian tbody');
+const tc=document.querySelector('#tableCampaign tbody');
+const tp=document.querySelector('#tableProgram tbody');
+const tch=document.querySelector('#tableChannel tbody');
+const tk=document.querySelector('#tableKonten tbody');
+console.log('tables found:',{th:!!th,tc:!!tc,tp:!!tp,tch:!!tch,tk:!!tk});
+if(th&&data.per_harian?.[0]?.html!==undefined)th.innerHTML=data.per_harian[0].html;
+if(tc&&data.per_campaign?.[0]?.html!==undefined)tc.innerHTML=data.per_campaign[0].html;
+if(tp&&data.per_program?.[0]?.html!==undefined)tp.innerHTML=data.per_program[0].html;
+if(tch&&data.per_channel?.[0]?.html!==undefined)tch.innerHTML=data.per_channel[0].html;
+if(tk&&data.per_konten?.[0]?.html!==undefined)tk.innerHTML=data.per_konten[0].html;
+
+// Rebuild semua chart dari chart_data yang tersimpan
+const cd=data.chart_data||{};
+serverChartData=cd; // simpan ke global untuk switchTab
+setTimeout(()=>{
+// Chart trend ringkasan
+if(cd.chartTrend)renderChart('chartTrend','line',cd.chartTrend);
+else{
+const harianChart=data.kpi_harian_chart||[];
+if(harianChart.length)renderChart('chartTrend','line',{labels:harianChart.map(d=>d.tgl),datasets:[{label:'Nominal Donasi',data:harianChart.map(d=>Number(String(d.nominal||'').replace(/[^0-9]/g,''))||0),borderColor:'#059669',backgroundColor:'rgba(5,150,105,0.1)',fill:true,tension:0.4},{label:'Budget',data:harianChart.map(d=>Number(String(d.budget||'').replace(/[^0-9]/g,''))||0),borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,0.05)',fill:false,tension:0.4}]});
+}
+// Chart harian
+if(cd.chartHarian)renderChart('chartHarianVisual','bar',cd.chartHarian);
+else if(cd.harian?.length)renderChart('chartHarianVisual','bar',{labels:cd.harian.map(d=>d.tgl),datasets:[{label:'Nominal',data:cd.harian.map(d=>d.nominal),backgroundColor:'#059669'}]});
+// Chart campaign
+if(cd.chartCampaign)renderChart('chartCampaign','bar',cd.chartCampaign);
+// Chart program
+if(cd.chartProgram)renderChart('chartProgram','doughnut',cd.chartProgram);
+// Chart channel
+if(cd.chartChannel)renderChart('chartChannel','bar',cd.chartChannel);
+// Chart konten
+if(cd.chartKonten)renderChart('chartKonten','bar',cd.chartKonten);
+// Chart forecast
+if(cd.chartForecast)renderChart('chartForecast','line',cd.chartForecast);
+},100);
+
+status.textContent='✅ Laporan "'+data.periode+'" berhasil dimuat';status.style.color='#059669';
+console.log('tampilLaporan done');
+}catch(e){status.textContent='❌ Gagal muat: '+e.message;status.style.color='#dc2626';console.error(e);}
+}
+
+// Muat daftar laporan otomatis saat buka halaman (untuk atasan)
+window.addEventListener('load',()=>{
+setTimeout(async()=>{
+try{
+const{data}=await supa.from('laporan_iklan').select('id').limit(1);
+if(data&&data.length){
+// Ada laporan di server — tampilkan tombol muat otomatis
+const banner=document.createElement('div');
+banner.style.cssText='position:fixed;bottom:20px;right:20px;background:#1e40af;color:white;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.2)';
+banner.innerHTML='📥 Ada laporan tersimpan — Klik untuk muat';
+banner.addEventListener('click',()=>{muatDariServer();banner.remove();});
+document.body.appendChild(banner);
+}
+}catch(e){}
+},500);
+});
+const STORAGE_KEY='ad-berbagikebaikan-data';
+
+function saveState(){
+const state={
+rawIklan:rawIklan.map(r=>{const o={...r};delete o._sourceFile;delete o._akun;return o;}),
+rawDonasi:rawDonasi.map(r=>{const o={...r};delete o._sourceFile;return o;}),
+matchedData:matchedData.map(r=>{const o={...r};return o;}),
+campaignToProgram:campaignToProgram,
+includeStatuses:[...includeStatuses],
+allHeadersIklan:[...allHeadersIklan],
+allHeadersDonasi:[...allHeadersDonasi],
+config:{
+campaign:document.getElementById('colCampaign').value,
+adName:document.getElementById('colAdName').value,
+budget:document.getElementById('colBudget').value,
+tanggalIklan:document.getElementById('colTanggalIklan').value,
+program:document.getElementById('colProgram').value,
+nominal:document.getElementById('colNominal').value,
+tanggal:document.getElementById('colTanggal').value,
+status:document.getElementById('colStatus').value,
+fundraiser:document.getElementById('colFundraiser').value
+},
+step:document.getElementById('step-3').classList.contains('active')?3:
+     document.getElementById('step-2').classList.contains('active')?2:1
+};
+try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));console.log('State saved');}catch(e){console.error('Save failed',e);}
+}
+
+function loadState(){
+try{
+const raw=localStorage.getItem(STORAGE_KEY);
+if(!raw)return false;
+const state=JSON.parse(raw);
+if(!state.rawDonasi||!state.rawDonasi.length)return false;
+rawIklan=state.rawIklan||[];
+rawDonasi=state.rawDonasi||[];
+matchedData=state.matchedData||[];
+campaignToProgram=state.campaignToProgram||{};
+includeStatuses=new Set(state.includeStatuses||['success','paid','completed','settlement','berhasil','sukses','pending','waiting','menunggu','unpaid']);
+allHeadersIklan=new Set(state.allHeadersIklan||[]);
+allHeadersDonasi=new Set(state.allHeadersDonasi||[]);
+if(state.config){
+const c=state.config;
+setTimeout(()=>{
+if(c.campaign)document.getElementById('colCampaign').value=c.campaign;
+if(c.adName)document.getElementById('colAdName').value=c.adName;
+if(c.budget)document.getElementById('colBudget').value=c.budget;
+if(c.tanggalIklan)document.getElementById('colTanggalIklan').value=c.tanggalIklan;
+if(c.program)document.getElementById('colProgram').value=c.program;
+if(c.nominal)document.getElementById('colNominal').value=c.nominal;
+if(c.tanggal)document.getElementById('colTanggal').value=c.tanggal;
+if(c.status)document.getElementById('colStatus').value=c.status;
+if(c.fundraiser)document.getElementById('colFundraiser').value=c.fundraiser;
+},100);
+}
+if(rawIklan.length){
+const listEl=document.getElementById('listIklan');
+listEl.innerHTML='<div class="file-item"><span>📄 Data tersimpan ('+rawIklan.length+' rows)</span></div>';
+}
+if(rawDonasi.length){
+const listEl=document.getElementById('listDonasi');
+listEl.innerHTML='<div class="file-item"><span>📄 Data tersimpan ('+rawDonasi.length+' rows)</span></div>';
+}
+if(state.step===3){
+setTimeout(()=>{
+if(matchedData.length){
+buildRingkasan();buildHarian();buildCampaign();buildProgram();buildKonten();buildChannel();buildForecast();
+document.getElementById('step-1').classList.remove('active');
+document.getElementById('step-3').classList.add('active');
+document.getElementById('wiz-1').classList.add('done');document.getElementById('wiz-1').classList.remove('active');
+document.getElementById('wiz-2').classList.add('done');document.getElementById('wiz-2').classList.remove('active');
+document.getElementById('wiz-3').classList.add('active');
+}
+},200);
+}else if(state.step===2){
+setTimeout(()=>{
+document.getElementById('step-1').classList.remove('active');
+document.getElementById('step-2').classList.add('active');
+document.getElementById('wiz-1').classList.add('done');document.getElementById('wiz-1').classList.remove('active');
+document.getElementById('wiz-2').classList.add('active');
+},200);
+}
+updateSelects();
+console.log('State restored, step',state.step);
+return true;
+}catch(e){console.error('Restore failed',e);return false;}
+}
+
+function clearState(){
+localStorage.removeItem(STORAGE_KEY);
+resetAll();
+alert('Data dihapus. Silakan upload data baru.');
+}
+
+// Auto-save hooks — wrap after all functions defined
+const _origProcessMatching=processMatching;
+processMatching=function(){_origProcessMatching();saveState();};
+const _origGenerateDashboard=generateDashboard;
+generateDashboard=function(){_origGenerateDashboard();setTimeout(saveState,1000);};
+const _origHandleFiles=handleFiles;
+handleFiles=function(files,type){_origHandleFiles(files,type);setTimeout(saveState,500);};
+
+// Load on startup
+window.addEventListener('load',()=>{
+document.getElementById('closeLaporanList').addEventListener('click',()=>{
+document.getElementById('laporanList').style.display='none';
+});
+setTimeout(()=>{
+if(loadState()){console.log('Restored from localStorage');}
+else{console.log('No saved state');}
+},300);
+});
+</script>
+</body>
+</html>
