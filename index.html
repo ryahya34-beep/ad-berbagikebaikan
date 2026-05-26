@@ -132,7 +132,7 @@ th,td{padding:8px 10px;font-size:12px}
 .recommendation-grid{grid-template-columns:1fr}
 }
 </style>
-<!-- v3 --></head>
+</head>
 <body>
 <div class="container">
 <header>
@@ -316,6 +316,9 @@ th,td{padding:8px 10px;font-size:12px}
 <div class="card"><div class="card-header"><div class="card-title">🔮 Forecasting (Moving Average 7 Hari)</div></div>
 <div class="chart-container"><canvas id="chartForecast"></canvas></div></div>
 <div class="analysis-box"><h4>📊 Prediksi</h4><ul id="forecastList"></ul></div>
+
+
+</div>
 <div class="tab-panel" id="panel-momentum">
 <div class="card">
 <div class="card-header">
@@ -347,10 +350,9 @@ th,td{padding:8px 10px;font-size:12px}
 </div>
 </div>
 </div>
+</div>
+</div>
 
-</div>
-</div>
-</div>
 
 <div class="loading" id="loading"><div class="spinner"></div><p style="margin-top:16px;color:#475569;font-weight:600">Processing...</p></div>
 
@@ -2039,5 +2041,6 @@ else{console.log('No saved state');}
 },300);
 });
 </script>
+
 </body>
 </html>
