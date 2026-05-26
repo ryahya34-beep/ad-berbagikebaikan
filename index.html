@@ -327,7 +327,7 @@ th,td{padding:8px 10px;font-size:12px}
 </div>
 
 <!-- Momentum Input -->
-<div id="momentumInputArea" style="margin-bottom:16px">
+<div id="momentumInputArea" style="margin-bottom:16px;min-height:80px">
 <div id="momentumList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px"></div>
 <button class="btn btn-outline" onclick="addMomentumRow()" style="font-size:13px;padding:8px 16px">+ Tambah Momentum</button>
 <button class="btn btn-primary" onclick="buildMomentum()" style="font-size:13px;padding:8px 16px;margin-left:8px">🔍 Analisa</button>
@@ -1251,6 +1251,14 @@ function switchTab(tabName){
 document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));
 document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
 document.querySelectorAll('.tab-btn').forEach(t=>{if(t.dataset.tab===tabName)t.classList.add('active');});
+// Init momentum form on first visit
+if(tabName==='momentum'){
+  setTimeout(()=>{
+    if(!document.querySelectorAll('#momentumList > div').length){
+      addMomentumRow();
+    }
+  },50);
+}
 document.getElementById('panel-'+tabName).classList.add('active');
 setTimeout(()=>{
 // Kalau ada serverChartData (atasan load dari server), rebuild dari sana
@@ -2012,9 +2020,11 @@ switchTab = function(tabName){
   _origSwitchTab(tabName);
   if(tabName === 'momentum' && !momentumInitialized){
     momentumInitialized = true;
-    if(!document.querySelectorAll('#momentumList > div').length){
-      addMomentumRow();
-    }
+    setTimeout(()=>{
+      if(!document.querySelectorAll('#momentumList > div').length){
+        addMomentumRow();
+      }
+    }, 50);
   }
 };
 
