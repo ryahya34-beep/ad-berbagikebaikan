@@ -1669,6 +1669,8 @@ if(cd.chartForecast)renderChart('chartForecast','line',cd.chartForecast);
 },100);
 
 status.textContent='✅ Laporan "'+data.periode+'" berhasil dimuat';status.style.color='#059669';
+// Simpan harian data untuk Momentum tab
+if(data.kpi_harian_chart) window._harianaData=data.kpi_harian_chart;
 console.log('tampilLaporan done');
 }catch(e){status.textContent='❌ Gagal muat: '+e.message;status.style.color='#dc2626';console.error(e);}
 }
@@ -1889,26 +1891,15 @@ function buildMomentum(){
     let spend = 0, donasiCount = 0, donasiNominal = 0, pendingCount = 0, pendingNominal = 0;
 
     if(useMatchedFallback){
-      // Load dari server — pakai matchedData
-      matchedData.forEach(r => {
-        const tgl = r._tanggal || extractDateOnly(r[tglDonasiCol]||'');
+      // Load dari server — pakai kpi_harian_chart yang sudah di-load ke window.harianaData
+      const harianData = window._harianaData || [];
+      harianData.forEach(r => {
+        const tgl = r.tgl || '';
         if(!tgl || tgl < startD || tgl > endD) return;
-        const nom = r._nominal || parseNominal(r[nomCol]||0);
-        const ch = r._channel || '';
-        const st = r._status || '';
-        if(ch !== 'EXCLUDE'){
-          if(['success','paid','completed','sukses'].includes(st.toLowerCase())){
-            donasiCount++; donasiNominal += nom;
-          } else if(['pending','waiting','menunggu'].includes(st.toLowerCase())){
-            pendingCount++; pendingNominal += nom;
-          }
-        }
+        spend += parseNominal(r.budget || 0);
+        donasiNominal += parseNominal(r.nominal || 0);
+        if(parseNominal(r.nominal||0) > 0) donasiCount++;
       });
-      // Spend dari matchedData spent field
-      const allDates = new Set(matchedData.map(r=>r._tanggal).filter(d=>d&&d>=startD&&d<=endD));
-      const totalDates = new Set(matchedData.map(r=>r._tanggal).filter(d=>d));
-      const totalSpentAll = matchedData.reduce((s,r)=>s+(r._spent||0),0);
-      spend = totalDates.size > 0 ? totalSpentAll * (allDates.size / totalDates.size) : 0;
     } else {
       // Upload langsung — pakai rawIklan + rawDonasi
       if(tglIklanCol){
