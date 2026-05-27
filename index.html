@@ -293,7 +293,7 @@ th,td{padding:8px 10px;font-size:12px}
 <div class="chart-container small" style="margin-bottom:16px"><canvas id="chartMomentum"></canvas></div>
 <div class="table-wrap" style="margin-bottom:16px">
 <table id="tableMomentum">
-<thead><tr><th>Momentum</th><th>Periode</th><th>Total Hari</th><th>Spend</th><th>Hari Ada Donasi</th><th>Nominal Sukses</th><th>ROAS</th><th>Avg/Hari</th><th>vs Benchmark</th><th>Rating</th></tr></thead>
+<thead><tr><th>Momentum</th><th>Periode</th><th>Hari Aktif</th><th>Spend</th><th>Nominal Sukses</th><th>ROAS</th><th>Avg/Hari</th><th>vs Benchmark</th><th>Rating</th></tr></thead>
 <tbody></tbody>
 </table>
 </div>
@@ -2079,9 +2079,8 @@ function buildMomentum(){
     `<tr>
 <td><strong>${r.name}</strong></td>
 <td style="font-size:12px;color:#64748b">${r.start} s/d ${r.end}</td>
-<td>${r.days} hari</td>
+<td>${r.donasiCount} hari</td>
 <td>${rupiah(r.spend)}</td>
-<td>${r.donasiCount}</td>
 <td>${rupiah(r.donasiNominal)}</td>
 <td><strong>${r.spend>0?r.roas.toFixed(2)+'x':'–'}</strong></td>
 <td>${rupiah(r.avgPerHari)}/hari</td>
