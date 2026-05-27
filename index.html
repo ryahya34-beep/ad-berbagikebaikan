@@ -1531,12 +1531,32 @@ status.textContent='✅ Tersimpan! Atasan bisa lihat laporan "'+periode+'"';stat
 async function muatDariServer(){
 const listEl=document.getElementById('laporanList');
 const status=document.getElementById('serverStatus');
-status.textContent='⏳ Memuat daftar laporan...';status.style.color='#d97706';
-listEl.style.display='block';listEl.innerHTML='<div style="font-size:13px;color:#64748b">Memuat...</div>';
+listEl.style.display='block';
+
+// Tampil cache dulu (instant), update dari server di background
+const cacheKey='laporan_list_cache';
+const cached=localStorage.getItem(cacheKey);
+if(cached){
+  try{
+    const cData=JSON.parse(cached);
+    listEl.innerHTML=cData.map(d=>`<div onclick="tampilLaporan('${d.id}')" style="cursor:pointer;padding:10px;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:6px;background:white;hover:background:#f8fafc">
+<strong style="font-size:13px">${d.periode}</strong>
+<span style="font-size:11px;color:#94a3b8;margin-left:8px">${new Date(d.created_at).toLocaleDateString('id-ID')}</span>
+</div>`).join('')+'<div style="font-size:11px;color:#94a3b8;padding:4px">🔄 Memperbarui...</div>';
+    status.textContent='✅ Dari cache, memperbarui...';status.style.color='#94a3b8';
+  }catch(e){
+    listEl.innerHTML='<div style="font-size:13px;color:#64748b">⏳ Memuat...</div>';
+    status.textContent='⏳ Memuat daftar laporan...';status.style.color='#d97706';
+  }
+}else{
+  listEl.innerHTML='<div style="font-size:13px;color:#64748b">⏳ Menghubungi server...</div>';
+  status.textContent='⏳ Memuat daftar laporan...';status.style.color='#d97706';
+}
 console.log('muatDariServer: connecting to Supabase...');
 try{
-const{data,error}=await supa.from('laporan_iklan').select('id,periode,created_at,total_spent,jumlah_donasi,roas_sukses').order('created_at',{ascending:false});
+const{data,error}=await supa.from('laporan_iklan').select('id,periode,created_at,total_spent,jumlah_donasi,roas_sukses').order('created_at',{ascending:false}).limit(20);
 console.log('muatDariServer result:',{data,error});
+if(data&&!error) localStorage.setItem('laporan_list_cache',JSON.stringify(data));
 if(error)throw error;
 if(!data.length){listEl.innerHTML='<div style="font-size:13px;color:#64748b">Belum ada laporan tersimpan.</div>';status.textContent='';return;}
 status.textContent='';
@@ -1833,10 +1853,13 @@ function buildMomentum(){
   const tglIklanCol = document.getElementById('colTanggalIklan').value;
   const tglDonasiCol = document.getElementById('colTanggal').value;
 
-  if(!rawIklan.length || !rawDonasi.length){
+  // Cek apakah ada data — bisa dari upload langsung atau load dari server
+  if(!rawIklan.length && !matchedData.length){
     alert('Upload dan generate dashboard dulu sebelum analisa momentum.');
     return;
   }
+  // Kalau load dari server, rawDonasi/rawIklan kosong — pakai matchedData sebagai fallback
+  const useMatchedFallback = !rawIklan.length && matchedData.length > 0;
 
   // Collect momentum rows dari DOM
   const rows = document.querySelectorAll('#momentumList > div');
@@ -1863,37 +1886,58 @@ function buildMomentum(){
     const startD = mom.start;
     const endD = mom.end;
 
-    // Spend dari rawIklan dalam range
-    let spend = 0;
-    if(tglIklanCol){
-      rawIklan.forEach(r => {
-        const tgl = extractDateOnly(r[tglIklanCol]);
-        if(tgl >= startD && tgl <= endD) spend += parseNominal(r[budgetCol]);
-      });
-    } else {
-      // Tanpa kolom tanggal iklan: proporsional dari total hari
-      const totalBudget = rawIklan.reduce((s,r) => s+parseNominal(r[budgetCol]), 0);
-      const start_ = new Date(startD), end_ = new Date(endD);
-      const days = Math.max(1, Math.round((end_-start_)/(1000*60*60*24))+1);
-      const allDates = new Set(matchedData.map(r=>r._tanggal).filter(d=>d));
-      const totalDays = allDates.size || 30;
-      spend = totalBudget * (days/totalDays);
-    }
+    let spend = 0, donasiCount = 0, donasiNominal = 0, pendingCount = 0, pendingNominal = 0;
 
-    // Donasi dari rawDonasi dalam range
-    let donasiCount = 0, donasiNominal = 0, pendingCount = 0, pendingNominal = 0;
-    rawDonasi.forEach(r => {
-      if(fundCol && identifyChannel(r[fundCol]) === 'EXCLUDE') return;
-      const tgl = extractDateOnly(r[tglDonasiCol]);
-      if(tgl < startD || tgl > endD) return;
-      const nom = parseNominal(r[nomCol]);
-      const st = statCol ? String(r[statCol]||'').toLowerCase().trim() : 'success';
-      if(['success','paid','completed','settlement','berhasil','sukses'].includes(st)){
-        donasiCount++; donasiNominal += nom;
-      } else if(['pending','waiting','menunggu','unpaid'].includes(st)){
-        pendingCount++; pendingNominal += nom;
+    if(useMatchedFallback){
+      // Load dari server — pakai matchedData
+      matchedData.forEach(r => {
+        const tgl = r._tanggal || extractDateOnly(r[tglDonasiCol]||'');
+        if(!tgl || tgl < startD || tgl > endD) return;
+        const nom = r._nominal || parseNominal(r[nomCol]||0);
+        const ch = r._channel || '';
+        const st = r._status || '';
+        if(ch !== 'EXCLUDE'){
+          if(['success','paid','completed','sukses'].includes(st.toLowerCase())){
+            donasiCount++; donasiNominal += nom;
+          } else if(['pending','waiting','menunggu'].includes(st.toLowerCase())){
+            pendingCount++; pendingNominal += nom;
+          }
+        }
+      });
+      // Spend dari matchedData spent field
+      const allDates = new Set(matchedData.map(r=>r._tanggal).filter(d=>d&&d>=startD&&d<=endD));
+      const totalDates = new Set(matchedData.map(r=>r._tanggal).filter(d=>d));
+      const totalSpentAll = matchedData.reduce((s,r)=>s+(r._spent||0),0);
+      spend = totalDates.size > 0 ? totalSpentAll * (allDates.size / totalDates.size) : 0;
+    } else {
+      // Upload langsung — pakai rawIklan + rawDonasi
+      if(tglIklanCol){
+        rawIklan.forEach(r => {
+          const tgl = extractDateOnly(r[tglIklanCol]);
+          if(tgl >= startD && tgl <= endD) spend += parseNominal(r[budgetCol]);
+        });
+      } else {
+        const totalBudget = rawIklan.reduce((s,r) => s+parseNominal(r[budgetCol]), 0);
+        const start_ = new Date(startD), end_ = new Date(endD);
+        const days = Math.max(1, Math.round((end_-start_)/(1000*60*60*24))+1);
+        const allDates = new Set(matchedData.map(r=>r._tanggal).filter(d=>d));
+        const totalDays = allDates.size || 30;
+        spend = totalBudget * (days/totalDays);
       }
-    });
+
+      rawDonasi.forEach(r => {
+        if(fundCol && identifyChannel(r[fundCol]) === 'EXCLUDE') return;
+        const tgl = extractDateOnly(r[tglDonasiCol]);
+        if(tgl < startD || tgl > endD) return;
+        const nom = parseNominal(r[nomCol]);
+        const st = statCol ? String(r[statCol]||'').toLowerCase().trim() : 'success';
+        if(['success','paid','completed','settlement','berhasil','sukses'].includes(st)){
+          donasiCount++; donasiNominal += nom;
+        } else if(['pending','waiting','menunggu','unpaid'].includes(st)){
+          pendingCount++; pendingNominal += nom;
+        }
+      });
+    }
 
     const start_ = new Date(startD), end_ = new Date(endD);
     const days = Math.max(1, Math.round((end_-start_)/(1000*60*60*24))+1);
