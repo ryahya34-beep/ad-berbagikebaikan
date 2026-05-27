@@ -256,8 +256,6 @@ th,td{padding:8px 10px;font-size:12px}
 <button class="tab-btn" data-tab="program" onclick="switchTab('program')">🕌 Program</button>
 <button class="tab-btn" data-tab="konten" onclick="switchTab('konten')">🎨 Konten</button>
 <button class="tab-btn" data-tab="channel" onclick="switchTab('channel')">📡 Channel</button>
-<button class="tab-btn" data-tab="forecast" onclick="switchTab('forecast')">🔮 Forecast</button>
-<button class="tab-btn" data-tab="momentum" onclick="switchTab('momentum')">🎯 Momentum</button>
 </div>
 
 <div class="tab-panel active" id="panel-ringkasan">
@@ -273,8 +271,44 @@ th,td{padding:8px 10px;font-size:12px}
 <div class="kpi-card green"><div class="kpi-label">📈 Jumlah Donasi</div><div class="kpi-value" id="kpiJumlah">0</div><div class="kpi-change" id="kpiAvg">Avg: Rp0</div></div>
 </div>
 <div class="card"><div class="card-header"><div class="card-title">📈 Trend Donasi vs Budget</div></div><div class="chart-container"><canvas id="chartTrend"></canvas></div></div>
+<!-- ANALISA & REKOMENDASI UTAMA -->
 <div class="analysis-box"><h4>🧠 Analisa Performa</h4><ul id="analisaList"></ul></div>
 <div class="card"><div class="card-header"><div class="card-title">💡 Rekomendasi</div></div><div class="recommendation-grid" id="rekomendasiGrid"></div></div>
+
+<!-- SETUP MOMENTUM -->
+<div class="card" id="momentumSetupCard" style="margin-top:8px">
+<div class="card-header">
+<div class="card-title">🎯 Setup & Analisa Momentum</div>
+<button class="btn btn-secondary" onclick="exportTable('tableMomentum','Analisa_Momentum')" style="font-size:12px">📥 Export</button>
+</div>
+<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px;margin-bottom:14px;font-size:12px">
+<strong style="color:#c2410c">📌 Setup Momentum:</strong> Tambahkan periode (misal Qurban, Ramadhan) lalu klik Analisa untuk melihat performa + rekomendasi campaign berbasis data aktual vs benchmark.
+</div>
+<div id="momentumInputArea" style="margin-bottom:14px">
+<div id="momentumList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px"></div>
+<button class="btn btn-outline" onclick="addMomentumRow()" style="font-size:12px;padding:6px 14px">+ Tambah Momentum</button>
+<button class="btn btn-primary" onclick="buildMomentum()" style="font-size:12px;padding:6px 14px;margin-left:8px">🔍 Analisa</button>
+</div>
+<div id="momentumResults" style="display:none">
+<div class="chart-container small" style="margin-bottom:16px"><canvas id="chartMomentum"></canvas></div>
+<div class="table-wrap" style="margin-bottom:16px">
+<table id="tableMomentum">
+<thead><tr><th>Momentum</th><th>Periode</th><th>Hari</th><th>Spend</th><th>Donasi</th><th>Nominal Sukses</th><th>ROAS</th><th>Avg/Hari</th><th>vs Benchmark</th><th>Rating</th></tr></thead>
+<tbody></tbody>
+</table>
+</div>
+<div class="analysis-box"><h4>🧠 Analisa Momentum</h4><ul id="momentumAnalisa"></ul></div>
+<div class="card"><div class="card-header"><div class="card-title">💡 Rekomendasi Campaign per Momentum</div></div><div class="recommendation-grid" id="momentumReko"></div></div>
+</div>
+</div>
+
+<!-- FORECAST -->
+<div class="card" style="margin-top:8px">
+<div class="card-header"><div class="card-title">🔮 Forecast Donasi (7 Hari ke Depan)</div></div>
+<div class="chart-container"><canvas id="chartForecast"></canvas></div>
+<div class="analysis-box" style="margin-top:12px"><h4>📊 Prediksi & Insight</h4><ul id="forecastList"></ul></div>
+</div>
+
 </div>
 
 <div class="tab-panel" id="panel-harian">
@@ -312,44 +346,7 @@ th,td{padding:8px 10px;font-size:12px}
 <div class="table-wrap" style="margin-top:20px"><table id="tableChannel"><thead><tr><th>Channel</th><th>Donasi</th><th>Nominal</th><th>Avg Donasi</th></tr></thead><tbody></tbody></table></div></div>
 </div>
 
-<div class="tab-panel" id="panel-forecast">
-<div class="card"><div class="card-header"><div class="card-title">🔮 Forecasting (Moving Average 7 Hari)</div></div>
-<div class="chart-container"><canvas id="chartForecast"></canvas></div></div>
-<div class="analysis-box"><h4>📊 Prediksi</h4><ul id="forecastList"></ul></div>
 
-
-</div>
-<div class="tab-panel" id="panel-momentum">
-<div class="card">
-<div class="card-header">
-<div class="card-title">🎯 Analisa & Rekomendasi per Momentum</div>
-<button class="btn btn-secondary" onclick="exportTable('tableMomentum','Analisa_Momentum')">📥 Export</button>
-</div>
-<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:16px;margin-bottom:16px;font-size:13px">
-<strong style="color:#c2410c">📌 Setup Momentum:</strong> Tambahkan periode momentum (misal Qurban, Ramadhan) untuk melihat performa iklan di masing-masing momentum.
-</div>
-
-<!-- Momentum Input -->
-<div id="momentumInputArea" style="margin-bottom:16px;min-height:80px">
-<div id="momentumList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px"></div>
-<button class="btn btn-outline" onclick="addMomentumRow()" style="font-size:13px;padding:8px 16px">+ Tambah Momentum</button>
-<button class="btn btn-primary" onclick="buildMomentum()" style="font-size:13px;padding:8px 16px;margin-left:8px">🔍 Analisa</button>
-</div>
-
-<!-- Results -->
-<div id="momentumResults" style="display:none">
-<div class="chart-container small" style="margin-bottom:20px"><canvas id="chartMomentum"></canvas></div>
-<div class="table-wrap" style="margin-bottom:20px">
-<table id="tableMomentum">
-<thead><tr><th>Momentum</th><th>Periode</th><th>Hari</th><th>Spend</th><th>Donasi</th><th>Nominal Sukses</th><th>ROAS</th><th>Avg/Hari</th><th>Rating</th></tr></thead>
-<tbody></tbody>
-</table>
-</div>
-<div class="analysis-box"><h4>🧠 Analisa Momentum</h4><ul id="momentumAnalisa"></ul></div>
-<div class="card"><div class="card-header"><div class="card-title">💡 Rekomendasi Campaign per Momentum</div></div><div class="recommendation-grid" id="momentumReko"></div></div>
-</div>
-</div>
-</div>
 </div>
 </div>
 
@@ -891,32 +888,82 @@ datasets:[
 {label:'Budget',data:daily.map(d=>d.budget),borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,0.05)',fill:true,tension:0.4}
 ]});
 
+// ── Analisa objektif dengan benchmark industri donasi ──
+const BENCH_R = {roasMin:2, roasOk:3, roasGood:5, roasExc:7};
 const analisa=[];
+
+// ROAS assessment vs benchmark
+const roasLabel = roasSuksesIklan >= BENCH_R.roasExc ? `luar biasa ✨ (benchmark >${BENCH_R.roasExc}x)` :
+                  roasSuksesIklan >= BENCH_R.roasGood ? `sangat baik 🟢 (benchmark >${BENCH_R.roasGood}x)` :
+                  roasSuksesIklan >= BENCH_R.roasOk ? `cukup 🟡 (benchmark ${BENCH_R.roasOk}x)` :
+                  roasSuksesIklan >= BENCH_R.roasMin ? `di bawah ideal 🟠 (min ${BENCH_R.roasMin}x)` : 'merugi 🔴';
+analisa.push(`ROAS Sukses Iklan <strong>${roasSuksesIklan.toFixed(2)}x</strong> — ${roasLabel}. ROAS All Channel: <strong>${roasAllIklan.toFixed(2)}x</strong>.`);
+
+// Program performance
 const byProg=groupBy(getIklanMatchedData(),'_program',(k,v)=>({program:k,donasi:v.reduce((s,r)=>s+r._nominal,0),budget:0,count:v.length}));
 byProg.forEach(p=>{
     p.budget=rawIklan.filter(r=>campaignToProgram[String(r[campCol]||'').trim()]===p.program).reduce((s,r)=>s+parseNominal(r[budgetCol]),0);
+    p.roas=p.budget>0?p.donasi/p.budget:0;
 });
 if(byProg.length){
-const bestProg=byProg.sort((a,b)=>b.donasi-a.donasi)[0];
-const worstProg=byProg.filter(p=>p.budget>0).sort((a,b)=>(a.donasi/a.budget)-(b.donasi/b.budget))[0];
-analisa.push('Program <strong>'+bestProg.program+'</strong> top performer: '+rupiah(bestProg.donasi)+'.');
-if(worstProg)analisa.push('<strong>'+worstProg.program+'</strong> efisiensi terendah (ROAS '+(worstProg.donasi/worstProg.budget).toFixed(2)+'x).');
+    const bestProg=byProg.sort((a,b)=>b.roas-a.roas)[0];
+    const worstProg=byProg.filter(p=>p.budget>0).sort((a,b)=>a.roas-b.roas)[0];
+    analisa.push(`Program top: <strong>${bestProg.program}</strong> — ROAS ${bestProg.roas.toFixed(2)}x, donasi ${rupiah(bestProg.donasi)}.`);
+    if(worstProg&&worstProg.program!==bestProg.program)
+        analisa.push(`Program perlu perhatian: <strong>${worstProg.program}</strong> — ROAS ${worstProg.roas.toFixed(2)}x ${worstProg.roas<BENCH_R.roasMin?'(di bawah minimum viable '+BENCH_R.roasMin+'x)':''}.`);
 }
-analisa.push('Avg donasi/transaksi: <strong>'+rupiah(avgDonasi)+'</strong>.');
-analisa.push('ROAS Sukses Iklan: <strong>'+roasSuksesIklan.toFixed(2)+'x</strong> | ROAS All Iklan: <strong>'+roasAllIklan.toFixed(2)+'x</strong>.');
-if(jumlahPending>0)analisa.push('Ada <strong>'+jumlahPending+' donasi pending</strong> ('+rupiah(pendingAll)+') — follow up untuk konversi.');
-if(unmatched>0)analisa.push('<strong>'+unmatched+' donasi Iklan</strong> unmatched ('+unmatchedPct.toFixed(1)+'%) — cek mapping campaign.');
-if(excludedCount>0)analisa.push('<strong>'+excludedCount+' donasi</strong> di-exclude (Baitul Maal Hidayatullah).');
+
+// Avg donasi vs benchmark
+analisa.push(`Avg donasi/transaksi: <strong>${rupiah(avgDonasi)}</strong>${avgDonasi<50000?' — di bawah rata-rata donasi digital (Rp50rb), pertimbangkan suggested amount yang lebih tinggi':''}. Total ${jumlahDonasi} transaksi.`);
+
+// Pending
+if(jumlahPending>0){
+    const pendingPct=suksesAll>0?(pendingAll/suksesAll*100).toFixed(0):0;
+    analisa.push(`<strong>${jumlahPending} donasi pending</strong> senilai ${rupiah(pendingAll)} (${pendingPct}% dari sukses) — follow up via WhatsApp/email segera.`);
+}
+
+// Unmatched
+if(unmatched>0)analisa.push(`<strong>${unmatched} donasi Iklan unmatched</strong> (${unmatchedPct.toFixed(1)}%) — cek mapping campaign → program.`);
+if(excludedCount>0)analisa.push(`<strong>${excludedCount} donasi</strong> di-exclude (Baitul Maal Hidayatullah tidak dihitung dalam ROAS).`);
 
 document.getElementById('analisaList').innerHTML=analisa.map(a=>'<li>'+a+'</li>').join('');
 
-const recs=[
-{priority:'high',title:'🎯 Optimasi Budget',text:'Alihkan budget ke program dengan ROAS tertinggi.'},
-{priority:'medium',title:'📝 Creative Refresh',text:'Video/story-based creative biasanya outperform static image.'},
-{priority:'medium',title:'⏰ Timing',text:'Sesuaikan jadwal iklan dengan jam-jam emas donasi.'},
-{priority:'low',title:'📊 UTM Tracking',text:'Konsistenkan parameter UTM untuk akurasi matching ke depan.'},
-{priority:'high',title:'💰 Scaling',text:'Scale budget +20% tiap 3 hari jika ROAS Iklan stabil >5x.'}
-];
+// ── Rekomendasi berbasis data aktual + benchmark ──
+const BENCH_RK = {roasMin:2, roasOk:3, roasGood:5};
+const recs=[];
+
+// ROAS-based primary recommendation
+if(roasSuksesIklan >= BENCH_RK.roasGood){
+    recs.push({priority:'high', title:'🚀 Scale Budget',
+        text:`ROAS ${roasSuksesIklan.toFixed(2)}x di atas benchmark ${BENCH_RK.roasGood}x. Naikkan budget 20-30% bertahap (maksimal 2x lipat per minggu). Monitor ROAS setelah 3 hari — kalau tetap >${BENCH_RK.roasGood}x, lanjutkan scale.`});
+} else if(roasSuksesIklan >= BENCH_RK.roasOk){
+    recs.push({priority:'medium', title:'🔧 Optimasi untuk Scale',
+        text:`ROAS ${roasSuksesIklan.toFixed(2)}x — mendekati threshold scale (${BENCH_RK.roasGood}x). Fokus: A/B test creative (minimal 3 variasi), perluas lookalike audience, tambah retargeting. Target ROAS ${BENCH_RK.roasGood}x sebelum tambah budget.`});
+} else if(roasSuksesIklan > 0){
+    recs.push({priority:'high', title:'🔴 Perbaiki Performa Dulu',
+        text:`ROAS ${roasSuksesIklan.toFixed(2)}x di bawah minimum viable (${BENCH_RK.roasMin}x). Jangan naikkan budget. Langkah: (1) Pause ad set dengan ROAS < 1x, (2) Duplicate winning creative ke audience baru, (3) Review funnel donasi — cek drop-off di halaman donasi.`});
+}
+
+// Pending follow-up
+if(jumlahPending > 0){
+    recs.push({priority:'high', title:`⏳ Follow Up ${jumlahPending} Donasi Pending`,
+        text:`${rupiah(pendingAll)} masih pending. Kirim reminder via WhatsApp dalam 24 jam pertama — konversi pending tertinggi di jam 1-6 setelah donasi dibuat. Template: "Assalamualaikum, donasi Anda untuk [program] sedang diproses, klik link berikut untuk menyelesaikan pembayaran..."`});
+}
+
+// Program recommendation
+const byProgRek=groupBy(getIklanMatchedData(),'_program',(k,v)=>({program:k,donasi:v.reduce((s,r)=>s+r._nominal,0),count:v.length}));
+if(byProgRek.length >= 2){
+    const bestP = byProgRek.sort((a,b)=>b.donasi-a.donasi)[0];
+    recs.push({priority:'medium', title:`🏆 Fokus ke ${bestP.program}`,
+        text:`Program ini menghasilkan donasi terbanyak: ${rupiah(bestP.donasi)} dari ${bestP.count} transaksi. Alokasikan 60-70% budget ke program ini. Test creative baru dengan angle berbeda (testimoni, dampak nyata, countdown).`});
+}
+
+// Standard recs
+recs.push({priority:'medium', title:'🎨 Refresh Creative',
+    text:'Creative fatigue terjadi setelah 7-14 hari tayang. Indikator: CTR turun >30% atau CPM naik >20%. Siapkan minimal 3 variasi creative per program: video pendek (15 detik), carousel foto, dan static single image.'});
+recs.push({priority:'low', title:'📊 UTM Tracking Konsisten',
+    text:'Pastikan semua iklan pakai UTM Content = nama Ad Name yang sama persis di Meta Ads Manager. Ini akan aktifkan exact matching per konten (lebih akurat dari weighted attribution yang sekarang digunakan).'});
+
 document.getElementById('rekomendasiGrid').innerHTML=recs.map(r=>'<div class="rec-card priority-'+r.priority+'"><h4>'+r.title+'</h4><p>'+r.text+'</p></div>').join('');
 }
 
@@ -1197,51 +1244,123 @@ renderChart('chartChannel','bar',{labels:data.map(d=>d.channel),datasets:[{label
 }
 
 function buildForecast(){
-const daily=groupBy(getIklanMatchedData(),'_tanggal',(k,v)=>({tgl:k,nominal:v.reduce((s,r)=>s+r._nominal,0)})).sort((a,b)=>new Date(a.tgl)-new Date(b.tgl));
-if(daily.length<7){document.getElementById('forecastList').innerHTML='<li>Data harian kurang dari 7 hari, forecasting tidak akurat.</li>';return;}
+// Pakai harian data — dari matchedData kalau upload, dari _harianaData kalau load server
+let daily=[];
+if(matchedData.length){
+  daily=groupBy(getIklanMatchedData(),'_tanggal',(k,v)=>({
+    tgl:k,
+    nominal:v.reduce((s,r)=>s+r._nominal,0),
+    spent:v.reduce((s,r)=>s+(r._spent||0),0)
+  })).sort((a,b)=>new Date(a.tgl)-new Date(b.tgl));
+} else if(window._harianaData&&window._harianaData.length){
+  daily=window._harianaData.map(r=>({
+    tgl:r.tgl,
+    nominal:parseNominal(r.nominal||0),
+    spent:parseNominal(r.budget||0)
+  })).sort((a,b)=>new Date(a.tgl)-new Date(b.tgl));
+}
 
+const el=document.getElementById('forecastList');
+if(daily.length<7){el.innerHTML='<li>Data harian kurang dari 7 hari, forecasting tidak akurat.</li>';return;}
+
+// MA-7
 const ma=[];
 for(let i=0;i<daily.length;i++){
-let sum=0,cnt=0;
-for(let j=Math.max(0,i-6);j<=i;j++){sum+=daily[j].nominal;cnt++;}
-ma.push({tgl:daily[i].tgl,actual:daily[i].nominal,ma:sum/cnt});
+  let sum=0,cnt=0;
+  for(let j=Math.max(0,i-6);j<=i;j++){sum+=daily[j].nominal;cnt++;}
+  ma.push({tgl:daily[i].tgl,actual:daily[i].nominal,spent:daily[i].spent||0,ma:sum/cnt});
 }
 
+// Linear trend
 const n=ma.length;
 let sumX=0,sumY=0,sumXY=0,sumX2=0;
-for(let i=0;i<n;i++){
-sumX+=i;sumY+=ma[i].actual;sumXY+=i*ma[i].actual;sumX2+=i*i;
-}
+for(let i=0;i<n;i++){sumX+=i;sumY+=ma[i].actual;sumXY+=i*ma[i].actual;sumX2+=i*i;}
 const slope=(n*sumXY-sumX*sumY)/(n*sumX2-sumX*sumX);
 const intercept=(sumY-slope*sumX)/n;
 
+// Forecast 7 hari
 const lastMA=ma[ma.length-1].ma;
 const lastIdx=n-1;
 const forecast=[];
 for(let i=1;i<=7;i++){
-const trendComp=slope*(lastIdx+i)+intercept;
-const blended=(lastMA*0.6+trendComp*0.4);
-forecast.push({tgl:'H+'+i,predicted:Math.max(0,Math.round(blended))});
+  const trendComp=slope*(lastIdx+i)+intercept;
+  const blended=(lastMA*0.6+trendComp*0.4);
+  forecast.push({tgl:'H+'+i,predicted:Math.max(0,Math.round(blended))});
 }
 
 renderChart('chartForecast','line',{
-labels:[...ma.map(d=>d.tgl),...forecast.map(d=>d.tgl)],
-datasets:[
-{label:'Aktual',data:[...ma.map(d=>d.actual),...Array(7).fill(null)],borderColor:'#1e40af',backgroundColor:'transparent',spanGaps:true},
-{label:'MA-7',data:ma.map(d=>d.ma),borderColor:'#8b5cf6',borderDash:[5,5],backgroundColor:'transparent',pointRadius:0},
-{label:'Trend',data:ma.map((d,i)=>intercept+slope*i),borderColor:'#10b981',borderDash:[2,2],backgroundColor:'transparent',pointRadius:0},
-{label:'Prediksi',data:[...Array(ma.length).fill(null),...forecast.map(d=>d.predicted)],borderColor:'#d97706',borderDash:[10,5],backgroundColor:'transparent'}
-]
+  labels:[...ma.map(d=>d.tgl),...forecast.map(d=>d.tgl)],
+  datasets:[
+    {label:'Donasi Aktual',data:[...ma.map(d=>d.actual),...Array(7).fill(null)],borderColor:'#1e40af',backgroundColor:'rgba(30,64,175,0.05)',fill:true,spanGaps:true},
+    {label:'MA-7',data:ma.map(d=>d.ma),borderColor:'#8b5cf6',borderDash:[5,5],backgroundColor:'transparent',pointRadius:0},
+    {label:'Prediksi',data:[...Array(ma.length).fill(null),...forecast.map(d=>d.predicted)],borderColor:'#d97706',borderDash:[8,4],backgroundColor:'rgba(217,119,6,0.05)',fill:true}
+  ]
 });
 
-const avgLast7=ma.slice(-7).reduce((s,d)=>s+d.ma,0)/7;
-const trendDir=slope>0?'NAIK 📈':slope<0?'TURUN 📉':'STABIL ➡️';
-document.getElementById('forecastList').innerHTML=
-'<li>Moving Average 7 hari: <strong>'+rupiah(avgLast7)+'</strong>/hari.</li>'+
-'<li>Trend: <strong>'+trendDir+'</strong> (slope: '+slope.toFixed(0)+'/hari).</li>'+
-'<li>Prediksi 7 hari ke depan: <strong>'+rupiah(forecast.reduce((s,f)=>s+f.predicted,0))+'</strong> (total).</li>'+
-'<li>Rekomendasi: '+(slope>0?'Scale budget +15-20%.':slope<-1000?'Evaluasi creative & audience segera.':'Pertahankan strategy.')+'</li>';
+// ── Analisa objektif berbasis data + benchmark industri donasi ──
+const avgLast7=ma.slice(-7).reduce((s,d)=>s+d.actual,0)/7;
+const avgFirst7=ma.slice(0,7).reduce((s,d)=>s+d.actual,0)/7;
+const totalNominal=ma.reduce((s,d)=>s+d.actual,0);
+const totalSpent=ma.reduce((s,d)=>s+d.spent,0);
+const roasTotal=totalSpent>0?totalNominal/totalSpent:0;
+const forecastTotal=forecast.reduce((s,f)=>s+f.predicted,0);
+const trendPct=avgFirst7>0?((avgLast7-avgFirst7)/avgFirst7*100):0;
+
+// Deteksi momentum aktif dari momentumList
+const activeMomentum=[];
+const today=new Date().toISOString().split('T')[0];
+document.querySelectorAll('#momentumList > div').forEach(row=>{
+  const name=row.querySelector('.mom-name')?.value||'';
+  const start=row.querySelector('.mom-start')?.value||'';
+  const end=row.querySelector('.mom-end')?.value||'';
+  if(name&&start<=today&&end>=today) activeMomentum.push(name);
+});
+
+// Benchmark industri donasi
+const BENCHMARK={
+  roasMin:2,    // minimum viable
+  roasOk:3,     // break even dengan overhead
+  roasGood:5,   // scale worthy
+  avgDonasiMin:50000,
+  ctrMin:1.0,   // % link click / impresi
+};
+
+const insights=[];
+
+// Trend insight
+if(trendPct>15) insights.push(`📈 Donasi naik <strong>${trendPct.toFixed(0)}%</strong> dibanding 7 hari pertama — momentum positif, pertahankan atau scale budget.`);
+else if(trendPct<-15) insights.push(`📉 Donasi turun <strong>${Math.abs(trendPct).toFixed(0)}%</strong> dibanding awal periode — evaluasi creative dan audience segera.`);
+else insights.push(`➡️ Tren donasi relatif stabil (${trendPct>0?'+':''}${trendPct.toFixed(0)}%) — optimasi bertahap.`);
+
+// ROAS vs benchmark
+if(roasTotal>0){
+  if(roasTotal>=BENCHMARK.roasGood) insights.push(`🟢 ROAS ${roasTotal.toFixed(2)}x — <strong>di atas benchmark ${BENCHMARK.roasGood}x</strong>, layak scale budget 20-30%.`);
+  else if(roasTotal>=BENCHMARK.roasOk) insights.push(`🟡 ROAS ${roasTotal.toFixed(2)}x — <strong>cukup (benchmark ${BENCHMARK.roasOk}x)</strong>, ada ruang optimasi.`);
+  else if(roasTotal>=BENCHMARK.roasMin) insights.push(`🟠 ROAS ${roasTotal.toFixed(2)}x — <strong>di bawah benchmark ideal ${BENCHMARK.roasOk}x</strong>, review targeting & creative.`);
+  else insights.push(`🔴 ROAS ${roasTotal.toFixed(2)}x — <strong>di bawah minimum ${BENCHMARK.roasMin}x</strong>, pertimbangkan pause dan rebuild campaign.`);
 }
+
+// Forecast insight
+const forecastVsActual=avgLast7>0?((forecastTotal/7-avgLast7)/avgLast7*100):0;
+insights.push(`🔮 Prediksi 7 hari ke depan: <strong>${rupiah(forecastTotal)}</strong> total (${rupiah(Math.round(forecastTotal/7))}/hari) — ${forecastVsActual>0?'+':''}${forecastVsActual.toFixed(0)}% vs rata-rata 7 hari terakhir.`);
+
+// Momentum aktif
+if(activeMomentum.length){
+  insights.push(`🎯 Momentum aktif saat ini: <strong>${activeMomentum.join(', ')}</strong> — manfaatkan untuk tingkatkan donasi dengan campaign khusus.`);
+} else {
+  insights.push(`💡 Tidak ada momentum khusus aktif saat ini. Pertimbangkan campaign program rutin atau awareness untuk jaga baseline donasi.`);
+}
+
+// Volatilitas
+const vals=ma.map(d=>d.actual);
+const mean=vals.reduce((s,v)=>s+v,0)/vals.length;
+const std=Math.sqrt(vals.reduce((s,v)=>s+(v-mean)**2,0)/vals.length);
+const cv=mean>0?std/mean:0;
+if(cv>0.5) insights.push(`⚠️ Donasi harian sangat fluktuatif (CV ${(cv*100).toFixed(0)}%) — pertimbangkan jadwal iklan lebih konsisten.`);
+
+el.innerHTML=insights.map(i=>'<li>'+i+'</li>').join('');
+}
+
 
 function renderChart(id,type,data){
 const ctx=document.getElementById(id).getContext('2d');
@@ -1295,7 +1414,6 @@ else if(tabName==='campaign')buildCampaign();
 else if(tabName==='program')buildProgram();
 else if(tabName==='konten')buildKonten();
 else if(tabName==='channel')buildChannel();
-else if(tabName==='forecast')buildForecast();
 else if(tabName==='ringkasan'){if(charts['chartTrend'])charts['chartTrend'].resize();}
 },50);
 }
@@ -1758,6 +1876,14 @@ if(state.step===3){
 setTimeout(()=>{
 if(matchedData.length){
 buildRingkasan();buildHarian();buildCampaign();buildProgram();buildKonten();buildChannel();buildForecast();
+// Auto-init momentum row kalau belum ada
+setTimeout(()=>{
+  if(!document.querySelectorAll('#momentumList > div').length) addMomentumRow();
+},200);
+// Auto-init momentum row kalau belum ada
+setTimeout(()=>{
+  if(!document.querySelectorAll('#momentumList > div').length) addMomentumRow();
+},200);
 document.getElementById('step-1').classList.remove('active');
 document.getElementById('step-3').classList.add('active');
 document.getElementById('wiz-1').classList.add('done');document.getElementById('wiz-1').classList.remove('active');
@@ -1970,77 +2096,93 @@ function buildMomentum(){
     ]
   });
 
-  // Analisa otomatis
+  // ── Analisa objektif berbasis data + benchmark ──
+  const BENCH = {roasMin:2, roasOk:3, roasGood:5, roasExc:7};
   const sorted = [...results].sort((a,b) => b.roas - a.roas);
   const best = sorted[0];
   const worst = sorted[sorted.length-1];
   const analisa = [];
 
-  if(best){
-    analisa.push(`🏆 Momentum terbaik: <strong>${best.name}</strong> — ROAS ${best.roas.toFixed(2)}x, donasi ${rupiah(best.donasiNominal)} dalam ${best.days} hari.`);
-  }
-  if(worst && worst.name !== best?.name){
-    if(worst.roas === 0){
-      analisa.push(`⚠️ <strong>${worst.name}</strong> tidak menghasilkan donasi — evaluasi creative atau timing iklan.`);
-    } else {
-      analisa.push(`📉 Momentum terendah: <strong>${worst.name}</strong> — ROAS ${worst.roas.toFixed(2)}x. Masih ada ruang optimasi.`);
-    }
+  // Best momentum
+  if(best && best.spend > 0){
+    const vs = best.roas >= BENCH.roasExc ? `luar biasa (>${BENCH.roasExc}x benchmark)` :
+               best.roas >= BENCH.roasGood ? `sangat baik (>${BENCH.roasGood}x benchmark)` :
+               best.roas >= BENCH.roasOk ? `cukup baik (>${BENCH.roasOk}x benchmark)` :
+               best.roas >= BENCH.roasMin ? `di bawah ideal (benchmark ${BENCH.roasOk}x)` : 'merugi';
+    analisa.push(`🏆 Momentum terbaik: <strong>${best.name}</strong> — ROAS ${best.roas.toFixed(2)}x (${vs}), donasi ${rupiah(best.donasiNominal)} dalam ${best.days} hari.`);
   }
 
-  // Trend: urutkan by tanggal mulai
-  const byDate = [...results].sort((a,b) => a.start.localeCompare(b.start));
+  // Worst momentum
+  if(worst && worst.name !== best?.name && worst.spend > 0){
+    if(worst.roas === 0) analisa.push(`🔴 <strong>${worst.name}</strong> tidak menghasilkan donasi sama sekali — hentikan dan audit ulang creative + audience sebelum momentum berikutnya.`);
+    else if(worst.roas < BENCH.roasMin) analisa.push(`🔴 <strong>${worst.name}</strong> ROAS ${worst.roas.toFixed(2)}x — di bawah minimum viable ${BENCH.roasMin}x. Review targeting & creative.`);
+    else analisa.push(`🟡 Momentum terendah: <strong>${worst.name}</strong> ROAS ${worst.roas.toFixed(2)}x — masih ada ruang optimasi.`);
+  }
+
+  // Tren ROAS antar momentum (by tanggal)
+  const byDate = [...results].filter(r=>r.spend>0).sort((a,b) => a.start.localeCompare(b.start));
   if(byDate.length >= 2){
     const first = byDate[0], last = byDate[byDate.length-1];
-    const trend = last.roas > first.roas ? 'meningkat' : last.roas < first.roas ? 'menurun' : 'stabil';
-    analisa.push(`📊 Tren ROAS antar momentum: <strong>${trend}</strong> dari ${first.name} (${first.roas.toFixed(2)}x) ke ${last.name} (${last.roas.toFixed(2)}x).`);
+    const trendPct = first.roas > 0 ? ((last.roas - first.roas)/first.roas*100) : 0;
+    const trendLabel = trendPct > 10 ? `naik ${trendPct.toFixed(0)}% 📈` : trendPct < -10 ? `turun ${Math.abs(trendPct).toFixed(0)}% 📉` : 'stabil ➡️';
+    analisa.push(`📊 Tren ROAS: <strong>${trendLabel}</strong> dari ${first.name} (${first.roas.toFixed(2)}x) ke ${last.name} (${last.roas.toFixed(2)}x).`);
   }
 
-  // Avg spend per hari perbandingan
-  const maxSpendPerHari = results.reduce((max,r) => r.spendPerHari > max.spendPerHari ? r : max, results[0]);
-  if(maxSpendPerHari){
-    analisa.push(`💰 Spending harian tertinggi di <strong>${maxSpendPerHari.name}</strong>: ${rupiah(maxSpendPerHari.spendPerHari)}/hari selama ${maxSpendPerHari.days} hari.`);
-  }
+  // Efisiensi spend per hari
+  const maxEff = results.filter(r=>r.spend>0).reduce((max,r) => r.roas > max.roas ? r : max, results.find(r=>r.spend>0)||results[0]);
+  if(maxEff) analisa.push(`💰 Spend paling efisien: <strong>${maxEff.name}</strong> — ${rupiah(maxEff.spendPerHari)}/hari menghasilkan ${rupiah(maxEff.avgPerHari)}/hari donasi.`);
 
-  // Pending analysis
-  const highPending = results.filter(r => r.pendingNominal > r.donasiNominal * 0.2);
-  if(highPending.length){
-    analisa.push(`⏳ Pending tinggi di: ${highPending.map(r=>`<strong>${r.name}</strong> (${rupiah(r.pendingNominal)})`).join(', ')} — follow up segera.`);
-  }
+  // Pending warning
+  const highPending = results.filter(r => r.pendingNominal > r.donasiNominal * 0.15 && r.pendingNominal > 0);
+  if(highPending.length) analisa.push(`⏳ Pending tinggi di: ${highPending.map(r=>`<strong>${r.name}</strong> (${rupiah(r.pendingNominal)}, ${r.donasiNominal>0?(r.pendingNominal/r.donasiNominal*100).toFixed(0)+'%':'–'} dari sukses)`).join(', ')} — follow up donatur.`);
+
+  // Momentum tanpa spend (organik)
+  const noSpend = results.filter(r=>r.spend===0&&r.donasiNominal>0);
+  if(noSpend.length) analisa.push(`🌱 Donasi organik terdeteksi di <strong>${noSpend.map(r=>r.name).join(', ')}</strong> tanpa spend iklan — potensi word-of-mouth, optimalkan dengan social proof.`);
 
   document.getElementById('momentumAnalisa').innerHTML = analisa.map(a => '<li>'+a+'</li>').join('');
 
-  // Rekomendasi
+  // ── Rekomendasi berbasis data aktual ──
   const reko = [];
-  if(best && best.roas >= 3){
-    reko.push({
-      priority:'high',
-      title:`🚀 Scale ${best.name}`,
-      text:`ROAS ${best.roas.toFixed(2)}x di ${best.name}. Naikkan budget +30-50% di momentum serupa tahun depan. Mulai iklan minimal 7-14 hari sebelum momentum puncak.`
-    });
+  const validResults = results.filter(r=>r.spend>0);
+
+  // Scale winner
+  if(best && best.roas >= BENCH.roasGood){
+    const budgetScale = best.roas >= BENCH.roasExc ? '50-70%' : '20-40%';
+    reko.push({priority:'high', title:`🚀 Scale Budget ${best.name}`,
+      text:`ROAS ${best.roas.toFixed(2)}x jauh di atas benchmark ${BENCH.roasGood}x. Naikkan budget ${budgetScale} untuk momentum serupa berikutnya. Mulai iklan 14 hari sebelum puncak momentum. Current avg spend: ${rupiah(best.spendPerHari)}/hari → target: ${rupiah(Math.round(best.spendPerHari * (best.roas>=BENCH.roasExc?1.6:1.3)))}/hari.`});
   }
-  if(worst && worst.roas < 2 && worst.spend > 0){
-    reko.push({
-      priority:'high',
-      title:`🔴 Evaluasi ${worst.name}`,
-      text:`ROAS hanya ${worst.roas.toFixed(2)}x. Ganti creative, test angle berbeda, atau shift budget ke momentum yang lebih efektif.`
-    });
+
+  // Fix worst
+  if(worst && worst.roas < BENCH.roasMin && worst.spend > 0){
+    reko.push({priority:'high', title:`🔧 Perbaiki ${worst.name}`,
+      text:`ROAS ${worst.roas.toFixed(2)}x di bawah minimum ${BENCH.roasMin}x. Langkah: (1) Audit creative — ganti visual dan copywriting, (2) Cek audience overlap, (3) Test budget kecil dulu (50% dari sebelumnya) sebelum full scale. Kalau 3 hari ROAS tidak naik, shift budget ke ${best?.name||'momentum terbaik'}.`});
   }
-  reko.push({
-    priority:'medium',
-    title:'📅 Jadwal Campaign',
-    text:`Berdasarkan data, alokasikan budget lebih besar 2 minggu sebelum momentum puncak (${best?.name||'terbaik'}). Jangan mulai H-1, audience perlu warm-up.`
-  });
-  reko.push({
-    priority:'medium',
-    title:'🎯 Segmentasi per Momentum',
-    text:'Buat campaign terpisah per momentum dengan creative yang relevan. Qurban: visual hewan, Ramadhan: visual buka puasa/sahur, Muharram: sedekah awal tahun.'
-  });
-  if(results.some(r => r.roas > 5)){
-    reko.push({
-      priority:'low',
-      title:'📈 Replikasi Winner',
-      text:`Campaign di ${results.filter(r=>r.roas>5).map(r=>r.name).join(', ')} performanya luar biasa. Dokumentasi creative, audience, dan timing untuk direplikasi di periode berikutnya.`
-    });
+
+  // Timing recommendation
+  if(validResults.length >= 2){
+    const bestTiming = validResults.sort((a,b)=>b.roas-a.roas)[0];
+    reko.push({priority:'medium', title:'📅 Optimasi Timing Campaign',
+      text:`Berdasarkan data, ${bestTiming.name} adalah momentum paling efektif (ROAS ${bestTiming.roas.toFixed(2)}x). Alokasi budget: mulai warm-up audience 2-3 minggu sebelum momentum, peak budget di 7 hari puncak, wind-down 3 hari setelah puncak.`});
+  }
+
+  // Budget allocation
+  if(validResults.length >= 2){
+    const totalSpend = validResults.reduce((s,r)=>s+r.spend,0);
+    const allocation = validResults.sort((a,b)=>b.roas-a.roas).slice(0,3)
+      .map(r=>`${r.name}: ${(r.roas/validResults.reduce((s,x)=>s+x.roas,0)*100).toFixed(0)}%`).join(', ');
+    reko.push({priority:'medium', title:'💰 Alokasi Budget Optimal',
+      text:`Berdasarkan ROAS aktual, distribusi budget yang disarankan: ${allocation}. Total budget dianalisa: ${rupiah(totalSpend)}.`});
+  }
+
+  // Creative direction per momentum
+  reko.push({priority:'low', title:'🎨 Arah Creative per Momentum',
+    text:'Qurban: visual hewan + angka donasi real-time, urgency "terbatas". Ramadhan: visual buka puasa/sahur, emotional copywriting. Muharram: sedekah awal tahun baru, momentum refleksi. Selalu include social proof (jumlah donatur, testimoni).'});
+
+  // Replikasi winner
+  if(results.some(r=>r.roas>=BENCH.roasExc)){
+    reko.push({priority:'low', title:'📋 Dokumentasi Winner',
+      text:`${results.filter(r=>r.roas>=BENCH.roasExc).map(r=>r.name).join(', ')} performa exceptional (>${BENCH.roasExc}x). Dokumentasi: audience yang digunakan, creative yang jalan, budget harian, waktu publish. Jadikan template untuk momentum berikutnya.`});
   }
 
   document.getElementById('momentumReko').innerHTML = reko.map(r =>
@@ -2050,20 +2192,7 @@ function buildMomentum(){
   document.getElementById('momentumResults').style.display = 'block';
 }
 
-// Auto-add 1 row kosong saat tab momentum dibuka pertama kali
-let momentumInitialized = false;
-const _origSwitchTab = switchTab;
-switchTab = function(tabName){
-  _origSwitchTab(tabName);
-  if(tabName === 'momentum' && !momentumInitialized){
-    momentumInitialized = true;
-    setTimeout(()=>{
-      if(!document.querySelectorAll('#momentumList > div').length){
-        addMomentumRow();
-      }
-    }, 50);
-  }
-};
+
 
 // Load on startup
 window.addEventListener('load',()=>{
