@@ -1809,6 +1809,10 @@ if(cd.chartForecast)renderChart('chartForecast','line',cd.chartForecast);
 status.textContent='✅ Laporan "'+data.periode+'" berhasil dimuat';status.style.color='#059669';
 // Simpan harian data untuk Momentum tab
 if(data.kpi_harian_chart) window._harianaData=data.kpi_harian_chart;
+setTimeout(()=>{
+  if(window._harianaData && window._harianaData.length) buildForecast();
+  if(document.querySelectorAll('#momentumList > div').length) buildMomentum();
+},300);
 console.log('tampilLaporan done');
 }catch(e){status.textContent='❌ Gagal muat: '+e.message;status.style.color='#dc2626';console.error(e);}
 }
