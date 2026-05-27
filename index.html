@@ -131,6 +131,10 @@ th,td{padding:8px 10px;font-size:12px}
 .card-title{font-size:15px}
 .recommendation-grid{grid-template-columns:1fr}
 }
+.filter-btn{padding:5px 12px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;cursor:pointer;background:white;color:#64748b;font-weight:500;transition:all 0.2s}
+.filter-btn.active{background:#1e40af;color:white;border-color:#1e40af}
+.filter-btn:hover:not(.active){background:#f8fafc}
+#filterBar{display:flex!important}
 </style>
 </head>
 <body>
@@ -256,6 +260,24 @@ th,td{padding:8px 10px;font-size:12px}
 <button class="tab-btn" data-tab="program" onclick="switchTab('program')">🕌 Program</button>
 <button class="tab-btn" data-tab="konten" onclick="switchTab('konten')">🎨 Konten</button>
 <button class="tab-btn" data-tab="channel" onclick="switchTab('channel')">📡 Channel</button>
+<button class="tab-btn" data-tab="perbandingan" onclick="switchTab('perbandingan')">📊 Perbandingan</button>
+</div>
+
+<!-- Filter Period Bar -->
+<div id="filterBar" style="display:none;background:white;border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px;margin-bottom:12px;display:none;align-items:center;gap:8px;flex-wrap:wrap">
+<span style="font-size:12px;font-weight:600;color:#64748b">🗓️ Filter:</span>
+<button class="filter-btn active" data-filter="all" onclick="setFilter('all')">Semua</button>
+<button class="filter-btn" data-filter="bulan_ini" onclick="setFilter('bulan_ini')">Bulan Ini</button>
+<button class="filter-btn" data-filter="bulan_lalu" onclick="setFilter('bulan_lalu')">Bulan Lalu</button>
+<button class="filter-btn" data-filter="tahun_ini" onclick="setFilter('tahun_ini')">Tahun Ini</button>
+<button class="filter-btn" data-filter="range" onclick="setFilter('range')">Custom</button>
+<span id="filterRangeInputs" style="display:none;gap:6px;align-items:center">
+  <input type="date" id="filterStart" onchange="applyRangeFilter()" style="padding:4px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px">
+  <span style="font-size:12px">s/d</span>
+  <input type="date" id="filterEnd" onchange="applyRangeFilter()" style="padding:4px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px">
+</span>
+<span id="filterInfo" style="font-size:11px;color:#94a3b8;margin-left:auto"></span>
+<span id="mergedLaporanInfo" style="font-size:11px;color:#1e40af;font-weight:600"></span>
 </div>
 
 <div class="tab-panel active" id="panel-ringkasan">
@@ -350,6 +372,45 @@ th,td{padding:8px 10px;font-size:12px}
 </div>
 </div>
 
+
+<!-- Panel Perbandingan -->
+<div class="tab-panel" id="panel-perbandingan">
+<div class="card">
+<div class="card-header">
+<div class="card-title">📊 Perbandingan Antar Laporan</div>
+<div style="display:flex;gap:8px;align-items:center">
+<button class="btn btn-secondary" onclick="resetPerbandingan()" style="font-size:12px">🔄 Reset</button>
+<button class="btn btn-secondary" onclick="exportTable('tablePerbandingan','Perbandingan_Laporan')" style="font-size:12px">📥 Export</button>
+</div>
+</div>
+
+<!-- Custom Metric Selector -->
+<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:14px;margin-bottom:16px">
+<div style="font-size:12px;font-weight:600;color:#0369a1;margin-bottom:10px">📌 Pilih Metrik yang Dibandingkan:</div>
+<div id="metricSelector" style="display:flex;flex-wrap:wrap;gap:8px">
+<label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;background:white;padding:5px 10px;border-radius:6px;border:1px solid #e2e8f0"><input type="checkbox" value="spent" checked onchange="updatePerbandingan()"> Spend</label>
+<label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;background:white;padding:5px 10px;border-radius:6px;border:1px solid #e2e8f0"><input type="checkbox" value="sukses_all" checked onchange="updatePerbandingan()"> Donasi All</label>
+<label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;background:white;padding:5px 10px;border-radius:6px;border:1px solid #e2e8f0"><input type="checkbox" value="sukses_iklan" checked onchange="updatePerbandingan()"> Donasi Iklan</label>
+<label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;background:white;padding:5px 10px;border-radius:6px;border:1px solid #e2e8f0"><input type="checkbox" value="roas_sukses" checked onchange="updatePerbandingan()"> ROAS Iklan</label>
+<label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;background:white;padding:5px 10px;border-radius:6px;border:1px solid #e2e8f0"><input type="checkbox" value="roas_all" onchange="updatePerbandingan()"> ROAS All</label>
+<label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;background:white;padding:5px 10px;border-radius:6px;border:1px solid #e2e8f0"><input type="checkbox" value="pending_all" onchange="updatePerbandingan()"> Pending</label>
+<label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;background:white;padding:5px 10px;border-radius:6px;border:1px solid #e2e8f0"><input type="checkbox" value="jumlah_donasi" onchange="updatePerbandingan()"> Jml Donasi</label>
+<label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;background:white;padding:5px 10px;border-radius:6px;border:1px solid #e2e8f0"><input type="checkbox" value="avg_donasi" onchange="updatePerbandingan()"> Avg Donasi</label>
+</div>
+</div>
+
+<div id="perbandinganEmpty" style="text-align:center;padding:40px;color:#94a3b8;font-size:13px">
+Pilih 2+ laporan dari "Muat dari Server" untuk mulai perbandingan.
+</div>
+<div id="perbandinganContent" style="display:none">
+<div class="chart-container" style="margin-bottom:20px"><canvas id="chartPerbandingan"></canvas></div>
+<div class="table-wrap">
+<table id="tablePerbandingan"><thead><tr id="trPerbandinganHead"></tr></thead><tbody id="tbodyPerbandingan"></tbody></table>
+</div>
+<div class="analysis-box" style="margin-top:16px"><h4>📈 Analisa Tren Antar Periode</h4><ul id="trenAnalisa"></ul></div>
+</div>
+</div>
+</div>
 
 <div class="loading" id="loading"><div class="spinner"></div><p style="margin-top:16px;color:#475569;font-weight:600">Processing...</p></div>
 
@@ -1683,11 +1744,22 @@ if(error)throw error;
 if(!data.length){listEl.innerHTML='<div style="font-size:13px;color:#64748b">Belum ada laporan tersimpan.</div>';status.textContent='';return;}
 status.textContent='';
 listEl.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-size:12px;font-weight:600;color:#1e40af">📋 Laporan tersimpan — klik untuk tampilkan:</div><button id="closeLaporanListBtn" style="background:transparent;border:none;font-size:18px;cursor:pointer;color:#64748b;line-height:1">✕</button></div>'+
+`<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px">
+<div style="font-weight:600;color:#0369a1;margin-bottom:6px">✅ Pilih laporan (max 12) lalu klik Tampilkan:</div>
+<div style="display:flex;gap:6px;flex-wrap:wrap">
+<button onclick="tampilSelectedLaporan()" style="padding:6px 14px;background:#1e40af;color:white;border:none;border-radius:6px;font-size:12px;cursor:pointer">🔍 Tampilkan yang Dipilih</button>
+<button onclick="selectAllLaporan()" style="padding:6px 12px;background:white;color:#1e40af;border:1px solid #bae6fd;border-radius:6px;font-size:12px;cursor:pointer">☑️ Pilih Semua</button>
+<button onclick="clearSelectedLaporan()" style="padding:6px 12px;background:white;color:#64748b;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;cursor:pointer">✕ Clear</button>
+</div>
+</div>`+
 data.map(d=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:white;border:1px solid #e2e8f0;border-radius:6px;margin-bottom:6px">
-<div data-laporan-id="${d.id}" style="flex:1;cursor:pointer">
+<label style="display:flex;align-items:center;gap:8px;flex:1;cursor:pointer">
+<input type="checkbox" class="laporan-checkbox" data-laporan-id="${d.id}" data-periode="${d.periode}" style="width:16px;height:16px;cursor:pointer">
+<div>
 <strong style="font-size:13px">${d.periode}</strong>
 <div style="font-size:11px;color:#64748b">${new Date(d.created_at).toLocaleString('id-ID')} · ${d.jumlah_donasi} donasi · ROAS ${parseFloat(d.roas_sukses||0).toFixed(2)}x</div>
 </div>
+</label>
 <span style="font-size:12px;color:#1e40af;font-weight:600;margin:0 12px">Rp${(d.total_spent||0).toLocaleString('id-ID')}</span>
 <button data-delete-id="${d.id}" data-delete-periode="${d.periode}" style="padding:4px 10px;background:transparent;border:1px solid #fca5a5;color:#dc2626;border-radius:5px;font-size:11px;cursor:pointer">🗑️</button>
 </div>`).join('');
@@ -1695,11 +1767,16 @@ setTimeout(()=>{
 document.getElementById('closeLaporanListBtn')?.addEventListener('click',()=>{
 listEl.style.display='none';
 });
+// Single click on div (not checkbox) for quick single load
 listEl.querySelectorAll('[data-laporan-id]').forEach(el=>{
-el.addEventListener('click',()=>{
-console.log('laporan clicked:',el.dataset.laporanId);
-tampilLaporan(el.dataset.laporanId);
-});
+  if(el.tagName === 'INPUT') return; // skip checkbox
+  el.addEventListener('click',()=>{
+    if(el.tagName === 'INPUT') return;
+    const cb = el.closest('label')?.querySelector('.laporan-checkbox');
+    if(cb) { cb.checked = !cb.checked; return; }
+    console.log('laporan clicked:',el.dataset.laporanId);
+    tampilLaporan(el.dataset.laporanId);
+  });
 });
 listEl.querySelectorAll('[data-delete-id]').forEach(el=>{
 el.addEventListener('click',async()=>{
@@ -2232,6 +2309,327 @@ function buildMomentum(){
 }
 
 
+
+
+// ═══════════════════════════════════════════════════
+// MULTI-LAPORAN, FILTER PERIOD, PERBANDINGAN
+// ═══════════════════════════════════════════════════
+
+let loadedLaporans = []; // array of loaded laporan data objects
+let mergedHarian = [];   // merged kpi_harian_chart deduplicated
+let activeFilter = {type:'all', start:null, end:null};
+let allLaporanData = []; // from muatDariServer
+
+// ── Filter helpers ──
+function getFilterRange(type){
+  const now = new Date();
+  if(type==='bulan_ini'){
+    return {start:new Date(now.getFullYear(),now.getMonth(),1).toISOString().split('T')[0],
+            end:new Date(now.getFullYear(),now.getMonth()+1,0).toISOString().split('T')[0]};
+  }
+  if(type==='bulan_lalu'){
+    return {start:new Date(now.getFullYear(),now.getMonth()-1,1).toISOString().split('T')[0],
+            end:new Date(now.getFullYear(),now.getMonth(),0).toISOString().split('T')[0]};
+  }
+  if(type==='tahun_ini'){
+    return {start:new Date(now.getFullYear(),0,1).toISOString().split('T')[0],
+            end:new Date(now.getFullYear(),11,31).toISOString().split('T')[0]};
+  }
+  return null;
+}
+
+function setFilter(type){
+  activeFilter.type = type;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('active', b.dataset.filter===type));
+  const rangeInputs = document.getElementById('filterRangeInputs');
+  if(rangeInputs) rangeInputs.style.display = type==='range' ? 'flex' : 'none';
+  if(type !== 'range') applyFilter();
+}
+
+function applyRangeFilter(){
+  const s = document.getElementById('filterStart')?.value;
+  const e = document.getElementById('filterEnd')?.value;
+  if(s && e){ activeFilter.start=s; activeFilter.end=e; applyFilter(); }
+}
+
+function getFilteredHarian(){
+  if(!mergedHarian.length) return [];
+  const range = activeFilter.type==='range' ? {start:activeFilter.start,end:activeFilter.end} :
+                activeFilter.type==='all' ? null : getFilterRange(activeFilter.type);
+  if(!range) return mergedHarian;
+  return mergedHarian.filter(d=>d.tgl>=range.start && d.tgl<=range.end);
+}
+
+function applyFilter(){
+  if(!loadedLaporans.length) return;
+  const filtered = getFilteredHarian();
+  const info = document.getElementById('filterInfo');
+  if(info) info.textContent = filtered.length ? `${filtered.length} hari data` : 'Tidak ada data';
+  rebuildFromMerged(filtered);
+}
+
+// ── Merge helpers ──
+function mergeLaporans(laporans){
+  // Merge kpi_harian_chart — deduplicate by tgl (latest wins)
+  const byTgl = {};
+  laporans.forEach(d=>{
+    (d.kpi_harian_chart||[]).forEach(h=>{
+      if(!byTgl[h.tgl]){
+        byTgl[h.tgl] = {tgl:h.tgl, budget:parseNominal(h.budget||0), nominal:parseNominal(h.nominal||0)};
+      } else {
+        byTgl[h.tgl].budget += parseNominal(h.budget||0);
+        byTgl[h.tgl].nominal += parseNominal(h.nominal||0);
+      }
+    });
+  });
+  return Object.values(byTgl).sort((a,b)=>a.tgl.localeCompare(b.tgl));
+}
+
+function getMergedKPI(laporans){
+  return {
+    total_spent: laporans.reduce((s,d)=>s+(d.total_spent||0),0),
+    sukses_all: laporans.reduce((s,d)=>s+(d.sukses_all||0),0),
+    pending_all: laporans.reduce((s,d)=>s+(d.pending_all||0),0),
+    sukses_iklan: laporans.reduce((s,d)=>s+(d.sukses_iklan||0),0),
+    pending_iklan: laporans.reduce((s,d)=>s+(d.pending_iklan||0),0),
+    jumlah_donasi: laporans.reduce((s,d)=>s+(d.jumlah_donasi||0),0),
+    avg_donasi: laporans.length ? laporans.reduce((s,d)=>s+(d.avg_donasi||0),0)/laporans.length : 0,
+  };
+}
+
+// ── Load multiple laporan ──
+async function tampilSelectedLaporan(){
+  const checkboxes = document.querySelectorAll('.laporan-checkbox:checked');
+  if(!checkboxes.length){ alert('Pilih minimal 1 laporan.'); return; }
+  if(checkboxes.length > 12){ alert('Maksimal 12 laporan sekaligus.'); return; }
+
+  const status = document.getElementById('serverStatus');
+  status.textContent = '⏳ Memuat '+checkboxes.length+' laporan...'; status.style.color='#d97706';
+  document.getElementById('laporanList').style.display='none';
+
+  const ids = [...checkboxes].map(cb=>cb.dataset.laporanId);
+  try{
+    const{data,error} = await supa.from('laporan_iklan').select('*').in('id',ids);
+    if(error) throw error;
+
+    loadedLaporans = data;
+    mergedHarian = mergeLaporans(data);
+    window._harianaData = mergedHarian.map(d=>({tgl:d.tgl, budget:rupiah(d.budget), nominal:rupiah(d.nominal)}));
+
+    // Show step-3
+    document.getElementById('step-1').classList.remove('active');
+    document.getElementById('step-2').classList.remove('active');
+    document.getElementById('step-3').classList.add('active');
+    document.getElementById('wiz-1').classList.add('done');document.getElementById('wiz-1').classList.remove('active');
+    document.getElementById('wiz-2').classList.add('done');document.getElementById('wiz-2').classList.remove('active');
+    document.getElementById('wiz-3').classList.add('active');
+
+    // Update period name
+    const periodes = data.map(d=>d.periode).join(' + ');
+    document.getElementById('periodeName').value = periodes;
+
+    // Show filter bar
+    const fb = document.getElementById('filterBar');
+    if(fb) fb.style.display = 'flex';
+
+    // Update merged info
+    const mi = document.getElementById('mergedLaporanInfo');
+    if(mi) mi.textContent = checkboxes.length === 1 ? '1 laporan' : checkboxes.length+' laporan di-merge';
+
+    // Rebuild dari merged data
+    const filtered = getFilteredHarian();
+    rebuildFromMerged(filtered);
+
+    // Update perbandingan tab
+    updatePerbandingan();
+
+    status.textContent = '✅ '+checkboxes.length+' laporan berhasil dimuat'; status.style.color='#059669';
+
+    // Rebuild forecast + momentum
+    setTimeout(()=>{
+      if(window._harianaData && window._harianaData.length) buildForecast();
+      if(document.querySelectorAll('#momentumList > div').length) buildMomentum();
+    },400);
+
+  }catch(e){
+    status.textContent='❌ Gagal: '+e.message; status.style.color='#dc2626';
+    console.error(e);
+  }
+}
+
+function rebuildFromMerged(harianData){
+  if(!harianData.length) return;
+
+  // KPI dari merged + filtered
+  const totalSpent = harianData.reduce((s,d)=>s+d.budget,0);
+  const totalNominal = harianData.reduce((s,d)=>s+d.nominal,0);
+
+  // Update KPI tiles dari merged KPI
+  const mergedKPI = getMergedKPI(loadedLaporans);
+  const roas = mergedKPI.total_spent > 0 ? mergedKPI.sukses_iklan/mergedKPI.total_spent : 0;
+  const roasAll = mergedKPI.total_spent > 0 ? mergedKPI.sukses_all/mergedKPI.total_spent : 0;
+
+  document.getElementById('kpiSpent').textContent = rupiah(mergedKPI.total_spent);
+  document.getElementById('kpiSuksesAll').textContent = rupiah(mergedKPI.sukses_all);
+  document.getElementById('kpiPendingAll').textContent = rupiah(mergedKPI.pending_all)+' ('+mergedKPI.jumlah_donasi+')';
+  document.getElementById('kpiSuksesMeta').textContent = rupiah(mergedKPI.sukses_iklan);
+  document.getElementById('kpiPendingMeta').textContent = rupiah(mergedKPI.pending_iklan);
+  document.getElementById('kpiRoasIklan').textContent = roas.toFixed(2)+'x';
+  document.getElementById('kpiRoasTotal').textContent = roasAll.toFixed(2)+'x';
+  document.getElementById('kpiJumlah').textContent = mergedKPI.jumlah_donasi.toLocaleString('id-ID');
+  document.getElementById('kpiAvg').textContent = rupiah(mergedKPI.avg_donasi);
+
+  // Rebuild chart trend
+  renderChart('chartTrend','line',{
+    labels: harianData.map(d=>d.tgl),
+    datasets:[
+      {label:'Nominal Donasi',data:harianData.map(d=>d.nominal),borderColor:'#059669',backgroundColor:'rgba(5,150,105,0.1)',fill:true,tension:0.4},
+      {label:'Budget',data:harianData.map(d=>d.budget),borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,0.05)',fill:false,tension:0.4}
+    ]
+  });
+
+  // Rebuild analisa + reko dari merged KPI
+  const BL={roasMin:2,roasOk:3,roasGood:5,roasExc:7};
+  const rl=roas>=BL.roasExc?'luar biasa':roas>=BL.roasGood?'sangat baik':roas>=BL.roasOk?'cukup':roas>=BL.roasMin?'di bawah ideal':'merugi';
+  const na=[];
+  na.push('ROAS Sukses Iklan <strong>'+roas.toFixed(2)+'x</strong> ('+rl+'). ROAS All Channel: <strong>'+roasAll.toFixed(2)+'x</strong>.');
+  if(mergedKPI.avg_donasi>0) na.push('Avg donasi: <strong>'+rupiah(mergedKPI.avg_donasi)+'</strong>. Total '+mergedKPI.jumlah_donasi+' transaksi.');
+  if(mergedKPI.pending_all>0) na.push('<strong>Pending '+rupiah(mergedKPI.pending_all)+'</strong> ('+(mergedKPI.sukses_all>0?(mergedKPI.pending_all/mergedKPI.sukses_all*100).toFixed(0):0)+'%) — follow up segera.');
+  na.push('Sukses total: <strong>'+rupiah(mergedKPI.sukses_all)+'</strong> (Iklan: '+rupiah(mergedKPI.sukses_iklan)+', Non-Iklan: '+rupiah(mergedKPI.sukses_all-mergedKPI.sukses_iklan)+').');
+  if(loadedLaporans.length > 1) na.push('Data dari <strong>'+loadedLaporans.length+' laporan</strong> yang di-merge: '+loadedLaporans.map(d=>d.periode).join(', ')+'.');
+  document.getElementById('analisaList').innerHTML=na.map(a=>'<li>'+a+'</li>').join('');
+
+  const nr=[];
+  if(roas>=BL.roasGood) nr.push({p:'high',t:'Scale Budget',x:'ROAS '+roas.toFixed(2)+'x > benchmark '+BL.roasGood+'x. Naikkan budget 20-30% bertahap, monitor 3 hari.'});
+  else if(roas>=BL.roasOk) nr.push({p:'medium',t:'Optimasi untuk Scale',x:'ROAS '+roas.toFixed(2)+'x mendekati '+BL.roasGood+'x. A/B test 3-5 variasi creative, Advantage+ Audience.'});
+  else if(roas>0) nr.push({p:'high',t:'Perbaiki Performa',x:'ROAS '+roas.toFixed(2)+'x < '+BL.roasMin+'x. Pause ad set ROAS<1x, duplicate winning creative.'});
+  if(mergedKPI.pending_all>0) nr.push({p:'high',t:'Follow Up Pending',x:rupiah(mergedKPI.pending_all)+' pending. Kirim reminder WA dalam 24 jam.'});
+  nr.push({p:'medium',t:'Creative Refresh + UGC (Meta 2026)',x:'UGC outperform studio ads. 3-5 variasi creative, butuh 15-50+ active untuk Advantage+.'});
+  nr.push({p:'medium',t:'Advantage+ & Learning Phase',x:'Jangan edit >20% sekaligus. 50 konversi/minggu untuk exit learning. Scale max +20-30% per 3-5 hari.'});
+  nr.push({p:'low',t:'Aktifkan CAPI',x:'Post-iOS14: CAPI untuk kirim event donasi langsung ke Meta. True ROAS bisa 20-40% lebih tinggi.'});
+  document.getElementById('rekomendasiGrid').innerHTML=nr.map(r=>'<div class="rec-card priority-'+r.p+'"><h4>'+r.t+'</h4><p>'+r.x+'</p></div>').join('');
+}
+
+function selectAllLaporan(){
+  document.querySelectorAll('.laporan-checkbox').forEach(cb=>cb.checked=true);
+}
+
+function clearSelectedLaporan(){
+  document.querySelectorAll('.laporan-checkbox').forEach(cb=>cb.checked=false);
+}
+
+// ── Tab Perbandingan ──
+const METRIC_LABELS = {
+  spent:'Spend',sukses_all:'Donasi All',sukses_iklan:'Donasi Iklan',
+  roas_sukses:'ROAS Iklan',roas_all:'ROAS All',pending_all:'Pending',
+  jumlah_donasi:'Jml Donasi',avg_donasi:'Avg Donasi'
+};
+const METRIC_FORMAT = {
+  spent:'rp',sukses_all:'rp',sukses_iklan:'rp',roas_sukses:'x',
+  roas_all:'x',pending_all:'rp',jumlah_donasi:'num',avg_donasi:'rp'
+};
+
+function formatMetricVal(key, val){
+  const f = METRIC_FORMAT[key];
+  if(f==='rp') return rupiah(val||0);
+  if(f==='x') return (val||0).toFixed(2)+'x';
+  return (val||0).toLocaleString('id-ID');
+}
+
+function updatePerbandingan(){
+  if(!loadedLaporans.length){
+    document.getElementById('perbandinganEmpty').style.display='block';
+    document.getElementById('perbandinganContent').style.display='none';
+    return;
+  }
+
+  const selectedMetrics = [...document.querySelectorAll('#metricSelector input:checked')].map(cb=>cb.value);
+  if(!selectedMetrics.length) return;
+
+  document.getElementById('perbandinganEmpty').style.display='none';
+  document.getElementById('perbandinganContent').style.display='block';
+
+  // Sort laporan by created_at
+  const sorted = [...loadedLaporans].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+
+  // Build table header
+  document.getElementById('trPerbandinganHead').innerHTML =
+    '<th>Metrik</th>' + sorted.map(d=>'<th>'+d.periode+'</th>').join('') +
+    (sorted.length>1?'<th>Tren</th>':'');
+
+  // Build table body
+  document.getElementById('tbodyPerbandingan').innerHTML = selectedMetrics.map(key=>{
+    const vals = sorted.map(d=>d[key]||0);
+    const first=vals[0], last=vals[vals.length-1];
+    const trendPct = first>0 ? ((last-first)/first*100) : 0;
+    const trendStr = sorted.length>1 ? (trendPct>0?'<span style="color:#059669">▲'+trendPct.toFixed(0)+'%</span>':trendPct<0?'<span style="color:#dc2626">▼'+Math.abs(trendPct).toFixed(0)+'%</span>':'<span style="color:#64748b">–</span>') : '';
+    return '<tr><td><strong>'+METRIC_LABELS[key]+'</strong></td>'+
+      vals.map(v=>'<td>'+formatMetricVal(key,v)+'</td>').join('')+
+      (sorted.length>1?'<td>'+trendStr+'</td>':'')+
+      '</tr>';
+  }).join('');
+
+  // Build chart — bar per metric per laporan
+  const primaryMetric = selectedMetrics[0];
+  renderChart('chartPerbandingan','bar',{
+    labels: sorted.map(d=>d.periode),
+    datasets: selectedMetrics.slice(0,4).map((key,i)=>({
+      label: METRIC_LABELS[key],
+      data: sorted.map(d=>d[key]||0),
+      backgroundColor: ['rgba(30,64,175,0.7)','rgba(5,150,105,0.7)','rgba(217,119,6,0.7)','rgba(220,38,38,0.6)'][i]
+    }))
+  });
+
+  // Analisa tren
+  const trenAnalisa = [];
+  if(sorted.length >= 2){
+    // ROAS trend
+    const roasVals = sorted.map(d=>d.roas_sukses||0);
+    const roasTrend = roasVals[roasVals.length-1] - roasVals[0];
+    if(Math.abs(roasTrend) > 0.1)
+      trenAnalisa.push(`ROAS trend: <strong>${roasTrend>0?'meningkat':'menurun'} ${Math.abs(roasTrend).toFixed(2)}x</strong> dari ${roasVals[0].toFixed(2)}x (${sorted[0].periode}) → ${roasVals[roasVals.length-1].toFixed(2)}x (${sorted[sorted.length-1].periode}).`);
+
+    // Best period
+    const bestRoas = sorted.reduce((b,d)=>d.roas_sukses>b.roas_sukses?d:b);
+    trenAnalisa.push(`Periode terbaik: <strong>${bestRoas.periode}</strong> — ROAS ${(bestRoas.roas_sukses||0).toFixed(2)}x, donasi ${rupiah(bestRoas.sukses_all||0)}.`);
+
+    // Donasi growth
+    const donasiFirst = sorted[0].sukses_all||0;
+    const donasiLast = sorted[sorted.length-1].sukses_all||0;
+    const donasiGrowth = donasiFirst>0 ? ((donasiLast-donasiFirst)/donasiFirst*100) : 0;
+    trenAnalisa.push(`Donasi total ${donasiGrowth>=0?'naik':'turun'} <strong>${Math.abs(donasiGrowth).toFixed(0)}%</strong> dari ${rupiah(donasiFirst)} ke ${rupiah(donasiLast)}.`);
+
+    // Spend efficiency
+    const spentFirst = sorted[0].total_spent||0;
+    const spentLast = sorted[sorted.length-1].total_spent||0;
+    if(spentFirst>0 && spentLast>0){
+      const spendGrowth = ((spentLast-spentFirst)/spentFirst*100);
+      trenAnalisa.push(`Spend ${spendGrowth>=0?'naik':'turun'} <strong>${Math.abs(spendGrowth).toFixed(0)}%</strong> — efisiensi (ROAS) ${roasTrend>0?'ikut naik ✅':'menurun ⚠️'}.`);
+    }
+
+    // Pending trend
+    const pendingVals = sorted.map(d=>d.pending_all||0);
+    const maxPending = sorted.reduce((b,d)=>(d.pending_all||0)>(b.pending_all||0)?d:b);
+    if(maxPending.pending_all>0)
+      trenAnalisa.push(`Pending tertinggi: <strong>${maxPending.periode}</strong> (${rupiah(maxPending.pending_all||0)}) — prioritaskan follow up.`);
+  }
+  document.getElementById('trenAnalisa').innerHTML = trenAnalisa.map(a=>'<li>'+a+'</li>').join('');
+}
+
+function resetPerbandingan(){
+  loadedLaporans=[];mergedHarian=[];
+  document.getElementById('perbandinganEmpty').style.display='block';
+  document.getElementById('perbandinganContent').style.display='none';
+  const fb=document.getElementById('filterBar');if(fb)fb.style.display='none';
+}
+
+// ── SwitchTab — tambah perbandingan ──
+// Update existing switchTab untuk handle perbandingan
+const _switchTabOrig = switchTab;
+switchTab = function(tabName){
+  _switchTabOrig(tabName);
+  if(tabName==='perbandingan') updatePerbandingan();
+};
 
 // Load on startup
 window.addEventListener('load',()=>{
