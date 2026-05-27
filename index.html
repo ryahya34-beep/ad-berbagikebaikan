@@ -1762,9 +1762,18 @@ if(storedRoas>=BL.roasGood)nr.push({p:'high',t:'Scale Budget',x:'ROAS '+storedRo
 else if(storedRoas>=BL.roasOk)nr.push({p:'medium',t:'Optimasi untuk Scale',x:'ROAS '+storedRoas.toFixed(2)+'x mendekati threshold '+BL.roasGood+'x. A/B test 3-5 variasi creative, perluas Advantage+ Audience.'});
 else if(storedRoas>0)nr.push({p:'high',t:'Perbaiki Performa',x:'ROAS '+storedRoas.toFixed(2)+'x < minimum '+BL.roasMin+'x. Jangan scale. Pause ad set ROAS<1x, duplicate winning creative ke audience baru.'});
 if(storedPendingAll>0)nr.push({p:'high',t:'Follow Up Pending',x:rupiah(storedPendingAll)+' pending. Kirim reminder WA dalam 24 jam - konversi pending tertinggi di jam 1-6 setelah donasi dibuat.'});
-nr.push({p:'medium',t:'Creative Refresh + UGC (Meta 2026)',x:'Creative fatigue setelah 7-14 hari (CTR turun >30% atau CPM naik >20%). UGC outperform studio ads. Siapkan 3-5 variasi, butuh 15-50+ creative aktif untuk Advantage+.'});
-nr.push({p:'medium',t:'Advantage+ & Learning Phase',x:'Jangan edit campaign >20% sekaligus (reset learning phase). Butuh 50 konversi/minggu per ad set untuk exit learning. Scale budget max +20-30% per 3-5 hari.'});
-nr.push({p:'low',t:'Aktifkan CAPI',x:'Post-iOS14 aktifkan Conversions API untuk kirim event Purchase/Donate langsung ke Meta. Tingkatkan akurasi attribution dan percepat learning phase.'});
+// Rekomendasi data-driven
+const pendingRatio=storedSuksesAll>0?storedPendingAll/storedSuksesAll:0;
+const nonIklan=storedSuksesAll-storedSuksesIklan;
+const nonIklanRatio=storedSuksesAll>0?nonIklan/storedSuksesAll:0;
+const roasGap=storedRoasAll-storedRoas;
+if(pendingRatio>0.3)nr.push({p:'high',t:'Pending Kritis ('+Math.round(pendingRatio*100)+'%)',x:'Pending '+Math.round(pendingRatio*100)+'% dari sukses di atas ambang wajar 20%. Cek alur pembayaran, kemungkinan UX bermasalah. Kirim reminder dalam 1 jam pertama.'});
+else if(pendingRatio>0.15)nr.push({p:'medium',t:'Percepat Follow Up Pending ('+Math.round(pendingRatio*100)+'%)',x:'Pending '+Math.round(pendingRatio*100)+'% dari sukses. Standar industri <15%. Percepat follow up ke <2 jam setelah donasi dibuat.'});
+if(storedAvg>0&&storedAvg<100000)nr.push({p:'medium',t:'Naikkan Avg Donasi (saat ini '+rupiah(storedAvg)+')',x:'Avg donasi di bawah Rp100rb. Tambahkan tombol suggested amount (Rp50rb, Rp100rb, Rp250rb), tampilkan dampak nyata per nominal.'});
+if(nonIklanRatio>0.4)nr.push({p:'medium',t:'Optimalkan Non-Iklan ('+Math.round(nonIklanRatio*100)+'%)',x:'Donasi WA+organik '+Math.round(nonIklanRatio*100)+'% dari total. Buat WA blast, aktifkan donasi berulang, optimalkan landing page organik.'});
+if(roasGap>2&&storedRoas>0)nr.push({p:'low',t:'ROAS All ('+storedRoasAll.toFixed(1)+'x) jauh di atas ROAS Iklan ('+storedRoas.toFixed(1)+'x)',x:'Gap '+roasGap.toFixed(1)+'x: channel non-iklan lebih efisien dari iklan. Pertimbangkan alihkan sebagian budget ke WA broadcast.'});
+if(storedRoas>=7)nr.push({p:'low',t:'ROAS '+storedRoas.toFixed(1)+'x Exceptional',x:'ROAS sangat tinggi. Buka program baru dengan creative serupa, ekspansi lookalike audience dari donatur existing.'});
+
 document.getElementById('rekomendasiGrid').innerHTML=nr.map(r=>'<div class="rec-card priority-'+r.p+'"><h4>'+r.t+'</h4><p>'+r.x+'</p></div>').join('');
 if(kpi.htmlForecast)document.getElementById('forecastList').innerHTML=kpi.htmlForecast;
 
