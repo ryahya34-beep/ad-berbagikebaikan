@@ -1856,12 +1856,12 @@ function buildMomentum(){
   const tglDonasiCol = document.getElementById('colTanggal').value;
 
   // Cek apakah ada data — bisa dari upload langsung atau load dari server
-  if(!rawIklan.length && !matchedData.length){
+  if(!rawIklan.length && !matchedData.length && !(window._harianaData && window._harianaData.length)){
     alert('Upload dan generate dashboard dulu sebelum analisa momentum.');
     return;
   }
   // Kalau load dari server, rawDonasi/rawIklan kosong — pakai matchedData sebagai fallback
-  const useMatchedFallback = !rawIklan.length && matchedData.length > 0;
+  const useMatchedFallback = !rawIklan.length && (matchedData.length > 0 || (window._harianaData && window._harianaData.length > 0));
 
   // Collect momentum rows dari DOM
   const rows = document.querySelectorAll('#momentumList > div');
