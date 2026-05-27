@@ -2103,6 +2103,9 @@ function buildMomentum(){
   const worst = sorted[sorted.length-1];
   const analisa = [];
 
+  // Kalau hanya 1 momentum, skip perbandingan
+  const multiMomentum = results.filter(r=>r.spend>0).length > 1;
+
   // Best momentum
   if(best && best.spend > 0){
     const vs = best.roas >= BENCH.roasExc ? `luar biasa (>${BENCH.roasExc}x benchmark)` :
@@ -2112,16 +2115,16 @@ function buildMomentum(){
     analisa.push(`🏆 Momentum terbaik: <strong>${best.name}</strong> — ROAS ${best.roas.toFixed(2)}x (${vs}), donasi ${rupiah(best.donasiNominal)} dalam ${best.days} hari.`);
   }
 
-  // Worst momentum
-  if(worst && worst.name !== best?.name && worst.spend > 0){
+  // Worst momentum (hanya tampil kalau ada lebih dari 1 momentum)
+  if(multiMomentum && worst && worst.name !== best?.name && worst.spend > 0){
     if(worst.roas === 0) analisa.push(`🔴 <strong>${worst.name}</strong> tidak menghasilkan donasi sama sekali — hentikan dan audit ulang creative + audience sebelum momentum berikutnya.`);
     else if(worst.roas < BENCH.roasMin) analisa.push(`🔴 <strong>${worst.name}</strong> ROAS ${worst.roas.toFixed(2)}x — di bawah minimum viable ${BENCH.roasMin}x. Review targeting & creative.`);
     else analisa.push(`🟡 Momentum terendah: <strong>${worst.name}</strong> ROAS ${worst.roas.toFixed(2)}x — masih ada ruang optimasi.`);
   }
 
-  // Tren ROAS antar momentum (by tanggal)
+  // Tren ROAS antar momentum
   const byDate = [...results].filter(r=>r.spend>0).sort((a,b) => a.start.localeCompare(b.start));
-  if(byDate.length >= 2){
+  if(multiMomentum && byDate.length >= 2){
     const first = byDate[0], last = byDate[byDate.length-1];
     const trendPct = first.roas > 0 ? ((last.roas - first.roas)/first.roas*100) : 0;
     const trendLabel = trendPct > 10 ? `naik ${trendPct.toFixed(0)}% 📈` : trendPct < -10 ? `turun ${Math.abs(trendPct).toFixed(0)}% 📉` : 'stabil ➡️';
@@ -2160,14 +2163,14 @@ function buildMomentum(){
   }
 
   // Timing recommendation
-  if(validResults.length >= 2){
+  if(multiMomentum && validResults.length >= 2){
     const bestTiming = validResults.sort((a,b)=>b.roas-a.roas)[0];
     reko.push({priority:'medium', title:'📅 Optimasi Timing Campaign',
       text:`Berdasarkan data, ${bestTiming.name} adalah momentum paling efektif (ROAS ${bestTiming.roas.toFixed(2)}x). Alokasi budget: mulai warm-up audience 2-3 minggu sebelum momentum, peak budget di 7 hari puncak, wind-down 3 hari setelah puncak.`});
   }
 
-  // Budget allocation
-  if(validResults.length >= 2){
+  // Budget allocation (hanya kalau multi momentum)
+  if(multiMomentum && validResults.length >= 2){
     const totalSpend = validResults.reduce((s,r)=>s+r.spend,0);
     const allocation = validResults.sort((a,b)=>b.roas-a.roas).slice(0,3)
       .map(r=>`${r.name}: ${(r.roas/validResults.reduce((s,x)=>s+x.roas,0)*100).toFixed(0)}%`).join(', ');
