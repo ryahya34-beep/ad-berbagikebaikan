@@ -1748,8 +1748,24 @@ if(kpi.kpiRoasIklan)document.getElementById('kpiRoasIklan').textContent=kpi.kpiR
 if(kpi.kpiRoasTotal)document.getElementById('kpiRoasTotal').textContent=kpi.kpiRoasTotal;
 if(kpi.kpiJumlah)document.getElementById('kpiJumlah').textContent=kpi.kpiJumlah;
 if(kpi.kpiAvg)document.getElementById('kpiAvg').textContent=kpi.kpiAvg;
-if(kpi.htmlAnalisa)document.getElementById('analisaList').innerHTML=kpi.htmlAnalisa;
-if(kpi.htmlRekomendasi)document.getElementById('rekomendasiGrid').innerHTML=kpi.htmlRekomendasi;
+const storedRoas=data.roas_sukses||0,storedRoasAll=data.roas_all||0,storedSpent=data.total_spent||0,storedSuksesAll=data.sukses_all||0,storedPendingAll=data.pending_all||0,storedSuksesIklan=data.sukses_iklan||0,storedJumlah=data.jumlah_donasi||0,storedAvg=data.avg_donasi||0;
+const BL={roasMin:2,roasOk:3,roasGood:5,roasExc:7};
+const rl=storedRoas>=BL.roasExc?'luar biasa':storedRoas>=BL.roasGood?'sangat baik':storedRoas>=BL.roasOk?'cukup':storedRoas>=BL.roasMin?'di bawah ideal':'merugi';
+const na=[];
+na.push('ROAS Sukses Iklan <strong>'+storedRoas.toFixed(2)+'x</strong> ('+rl+'). ROAS All Channel: <strong>'+storedRoasAll.toFixed(2)+'x</strong>.');
+if(storedAvg>0)na.push('Avg donasi: <strong>'+rupiah(storedAvg)+'</strong>'+(storedAvg<50000?' - pertimbangkan suggested amount lebih tinggi':'')+'. Total '+storedJumlah+' transaksi.');
+if(storedPendingAll>0)na.push('<strong>Pending '+rupiah(storedPendingAll)+'</strong> ('+(storedSuksesAll>0?(storedPendingAll/storedSuksesAll*100).toFixed(0):0)+'% dari sukses) - follow up segera.');
+na.push('Sukses total: <strong>'+rupiah(storedSuksesAll)+'</strong> (Iklan: '+rupiah(storedSuksesIklan)+', Non-Iklan: '+rupiah(storedSuksesAll-storedSuksesIklan)+').');
+document.getElementById('analisaList').innerHTML=na.map(a=>'<li>'+a+'</li>').join('');
+const nr=[];
+if(storedRoas>=BL.roasGood)nr.push({p:'high',t:'Scale Budget',x:'ROAS '+storedRoas.toFixed(2)+'x > benchmark '+BL.roasGood+'x. Naikkan budget 20-30% bertahap, monitor 3 hari. True ROAS bisa 20-40% lebih tinggi dari yang dilaporkan Meta post-iOS14.'});
+else if(storedRoas>=BL.roasOk)nr.push({p:'medium',t:'Optimasi untuk Scale',x:'ROAS '+storedRoas.toFixed(2)+'x mendekati threshold '+BL.roasGood+'x. A/B test 3-5 variasi creative, perluas Advantage+ Audience.'});
+else if(storedRoas>0)nr.push({p:'high',t:'Perbaiki Performa',x:'ROAS '+storedRoas.toFixed(2)+'x < minimum '+BL.roasMin+'x. Jangan scale. Pause ad set ROAS<1x, duplicate winning creative ke audience baru.'});
+if(storedPendingAll>0)nr.push({p:'high',t:'Follow Up Pending',x:rupiah(storedPendingAll)+' pending. Kirim reminder WA dalam 24 jam - konversi pending tertinggi di jam 1-6 setelah donasi dibuat.'});
+nr.push({p:'medium',t:'Creative Refresh + UGC (Meta 2026)',x:'Creative fatigue setelah 7-14 hari (CTR turun >30% atau CPM naik >20%). UGC outperform studio ads. Siapkan 3-5 variasi, butuh 15-50+ creative aktif untuk Advantage+.'});
+nr.push({p:'medium',t:'Advantage+ & Learning Phase',x:'Jangan edit campaign >20% sekaligus (reset learning phase). Butuh 50 konversi/minggu per ad set untuk exit learning. Scale budget max +20-30% per 3-5 hari.'});
+nr.push({p:'low',t:'Aktifkan CAPI',x:'Post-iOS14 aktifkan Conversions API untuk kirim event Purchase/Donate langsung ke Meta. Tingkatkan akurasi attribution dan percepat learning phase.'});
+document.getElementById('rekomendasiGrid').innerHTML=nr.map(r=>'<div class="rec-card priority-'+r.p+'"><h4>'+r.t+'</h4><p>'+r.x+'</p></div>').join('');
 if(kpi.htmlForecast)document.getElementById('forecastList').innerHTML=kpi.htmlForecast;
 
 // Inject tabel HTML langsung — identik dengan tampilan staf
