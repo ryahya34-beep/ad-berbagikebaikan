@@ -1795,6 +1795,7 @@ console.log('listeners attached:',listEl.querySelectorAll('[data-laporan-id]').l
 }
 
 async function tampilLaporan(id){
+loadedLaporans=[];mergedHarian=[];
 const status=document.getElementById('serverStatus');
 status.textContent='⏳ Memuat laporan...';status.style.color='#d97706';
 console.log('tampilLaporan called with id:',id);
@@ -1883,6 +1884,9 @@ if(cd.chartKonten)renderChart('chartKonten','bar',cd.chartKonten);
 if(cd.chartForecast)renderChart('chartForecast','line',cd.chartForecast);
 },100);
 
+loadedLaporans=[data];mergedHarian=mergeLaporans([data]);
+const fb=document.getElementById('filterBar');if(fb)fb.style.display='flex';
+const mi=document.getElementById('mergedLaporanInfo');if(mi)mi.textContent='1 laporan';
 status.textContent='✅ Laporan "'+data.periode+'" berhasil dimuat';status.style.color='#059669';
 // Simpan harian data untuk Momentum tab
 if(data.kpi_harian_chart) window._harianaData=data.kpi_harian_chart;
@@ -2479,6 +2483,17 @@ function rebuildFromMerged(harianData){
   document.getElementById('kpiJumlah').textContent = mergedKPI.jumlah_donasi.toLocaleString('id-ID');
   document.getElementById('kpiAvg').textContent = rupiah(mergedKPI.avg_donasi);
 
+  const allTH=loadedLaporans.flatMap(d=>(d.per_harian||[]).map(h=>h.html||''));
+  const allTC=loadedLaporans.flatMap(d=>(d.per_campaign||[]).map(h=>h.html||''));
+  const allTP=loadedLaporans.flatMap(d=>(d.per_program||[]).map(h=>h.html||''));
+  const allTCH=loadedLaporans.flatMap(d=>(d.per_channel||[]).map(h=>h.html||''));
+  const allTK=loadedLaporans.flatMap(d=>(d.per_konten||[]).map(h=>h.html||''));
+  const th=document.querySelector('#tableHarian tbody');if(th)th.innerHTML=allTH.join('');
+  const tc=document.querySelector('#tableCampaign tbody');if(tc)tc.innerHTML=allTC.join('');
+  const tp=document.querySelector('#tableProgram tbody');if(tp)tp.innerHTML=allTP.join('');
+  const tch=document.querySelector('#tableChannel tbody');if(tch)tch.innerHTML=allTCH.join('');
+  const tk=document.querySelector('#tableKonten tbody');if(tk)tk.innerHTML=allTK.join('');
+  const cd=loadedLaporans.length===1?(loadedLaporans[0].chart_data||{}):{};if(cd.chartHarian)renderChart('chartHarianVisual','bar',cd.chartHarian);if(cd.chartCampaign)renderChart('chartCampaign','bar',cd.chartCampaign);if(cd.chartProgram)renderChart('chartProgram','doughnut',cd.chartProgram);if(cd.chartChannel)renderChart('chartChannel','bar',cd.chartChannel);if(cd.chartKonten)renderChart('chartKonten','bar',cd.chartKonten);
   // Rebuild chart trend
   renderChart('chartTrend','line',{
     labels: harianData.map(d=>d.tgl),
