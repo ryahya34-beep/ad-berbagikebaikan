@@ -914,7 +914,7 @@ if(byProg.length){
 }
 
 // Avg donasi vs benchmark
-analisa.push(`Avg donasi/transaksi: <strong>${rupiah(avgDonasi)}</strong>${avgDonasi<50000?' — di bawah rata-rata donasi digital (Rp50rb), pertimbangkan suggested amount yang lebih tinggi':''}. Total ${jumlahDonasi} transaksi.`);
+analisa.push(`Avg donasi/transaksi: <strong>${rupiah(avgDonasi)}</strong>${avgDonasi<50000?' — di bawah rata-rata donasi digital (Rp50rb), pertimbangkan suggested amount yang lebih tinggi':''}. Total ${jumlahSukses+jumlahPending} transaksi (${jumlahSukses} sukses, ${jumlahPending} pending).`);
 
 // Pending
 if(jumlahPending>0){
