@@ -2178,9 +2178,20 @@ function buildMomentum(){
       text:`Berdasarkan ROAS aktual, distribusi budget yang disarankan: ${allocation}. Total budget dianalisa: ${rupiah(totalSpend)}.`});
   }
 
-  // Creative direction per momentum
-  reko.push({priority:'low', title:'🎨 Arah Creative per Momentum',
-    text:'Qurban: visual hewan + angka donasi real-time, urgency "terbatas". Ramadhan: visual buka puasa/sahur, emotional copywriting. Muharram: sedekah awal tahun baru, momentum refleksi. Selalu include social proof (jumlah donatur, testimoni).'});
+  // Creative direction — spesifik ke momentum yang dianalisa
+  const creativeMap = {
+    'qurban': 'Visual hewan qurban + angka donasi real-time, urgency "sisa X slot". Copywriting: "Titipkan Qurbanmu sebelum terlambat". Sertakan foto penerima manfaat.',
+    'ramadhan': 'Visual buka puasa/sahur, emotional copywriting tentang kebersamaan. Countdown hari Ramadhan tersisa. Sertakan testimoni donatur tahun lalu.',
+    'muharram': 'Tema sedekah awal tahun baru Hijriyah. Copywriting reflektif. Visual yang tenang dan spiritual. "Awali tahun baru dengan kebaikan".',
+  };
+  const activeNames = results.map(r=>r.name.toLowerCase());
+  const matchedCreative = Object.entries(creativeMap).filter(([k])=>activeNames.some(n=>n.includes(k)));
+  if(matchedCreative.length){
+    matchedCreative.forEach(([k,v])=>{
+      const momentumName = results.find(r=>r.name.toLowerCase().includes(k))?.name || k;
+      reko.push({priority:'low', title:`🎨 Creative ${momentumName}`, text:v+' Selalu include social proof (jumlah donatur, testimoni nyata).'});
+    });
+  }
 
   // Replikasi winner
   if(results.some(r=>r.roas>=BENCH.roasExc)){
