@@ -958,11 +958,15 @@ if(byProgRek.length >= 2){
         text:`Program ini menghasilkan donasi terbanyak: ${rupiah(bestP.donasi)} dari ${bestP.count} transaksi. Alokasikan 60-70% budget ke program ini. Test creative baru dengan angle berbeda (testimoni, dampak nyata, countdown).`});
 }
 
-// Standard recs
-recs.push({priority:'medium', title:'🎨 Refresh Creative',
-    text:'Creative fatigue terjadi setelah 7-14 hari tayang. Indikator: CTR turun >30% atau CPM naik >20%. Siapkan minimal 3 variasi creative per program: video pendek (15 detik), carousel foto, dan static single image.'});
+// // Meta 2026 best practices
+recs.push({priority:'medium', title:'🎨 Creative Refresh + UGC (Meta 2026)',
+    text:'Creative fatigue setelah 7-14 hari (CTR turun >30% atau CPM naik >20%). Meta 2026: UGC outperform studio ads. Siapkan 3-5 variasi: video testimonial donatur, behind-the-scenes, foto penerima. Meta butuh 15-50+ creative untuk Advantage+. Pause creative CTR terendah setiap 7 hari.'});
+recs.push({priority:'medium', title:'⚡ Advantage+ & Learning Phase (Meta 2026)',
+    text:'Gunakan Advantage+ Audience. Jangan edit campaign >20% sekaligus (reset learning phase). Butuh 50 konversi/minggu per ad set. True ROAS sering 20-40% lebih tinggi dari yang dilaporkan Meta post-iOS14. Scale budget max +20-30% per 3-5 hari setelah learning selesai.'});
+recs.push({priority:'low', title:'📡 Aktifkan Conversions API (CAPI)',
+    text:'Post-iOS14, aktifkan CAPI di website donasi untuk kirim data konversi langsung ke Meta server. Prioritas event: Purchase/Donate dengan nilai nominal. Tingkatkan akurasi attribution dan percepat learning phase.'});
 recs.push({priority:'low', title:'📊 UTM Tracking Konsisten',
-    text:'Pastikan semua iklan pakai UTM Content = nama Ad Name yang sama persis di Meta Ads Manager. Ini akan aktifkan exact matching per konten (lebih akurat dari weighted attribution yang sekarang digunakan).'});
+    text:'Pastikan UTM Content = nama Ad Name persis sama di Meta Ads Manager. Ini aktifkan exact matching per konten.'});
 
 document.getElementById('rekomendasiGrid').innerHTML=recs.map(r=>'<div class="rec-card priority-'+r.priority+'"><h4>'+r.title+'</h4><p>'+r.text+'</p></div>').join('');
 }
