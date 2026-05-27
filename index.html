@@ -2010,6 +2010,8 @@ function buildMomentum(){
     alert('Upload dan generate dashboard dulu sebelum analisa momentum.');
     return;
   }
+  // Isi form momentum kalau belum ada
+  if(!document.querySelectorAll('#momentumList > div').length) addMomentumRow();
   // Kalau load dari server, rawDonasi/rawIklan kosong — pakai matchedData sebagai fallback
   const useMatchedFallback = !rawIklan.length && (matchedData.length > 0 || (window._harianaData && window._harianaData.length > 0));
 
