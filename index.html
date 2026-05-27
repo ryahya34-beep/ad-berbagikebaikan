@@ -293,7 +293,7 @@ th,td{padding:8px 10px;font-size:12px}
 <div class="chart-container small" style="margin-bottom:16px"><canvas id="chartMomentum"></canvas></div>
 <div class="table-wrap" style="margin-bottom:16px">
 <table id="tableMomentum">
-<thead><tr><th>Momentum</th><th>Periode</th><th>Hari</th><th>Spend</th><th>Donasi</th><th>Nominal Sukses</th><th>ROAS</th><th>Avg/Hari</th><th>vs Benchmark</th><th>Rating</th></tr></thead>
+<thead><tr><th>Momentum</th><th>Periode</th><th>Total Hari</th><th>Spend</th><th>Hari Ada Donasi</th><th>Nominal Sukses</th><th>ROAS</th><th>Avg/Hari</th><th>vs Benchmark</th><th>Rating</th></tr></thead>
 <tbody></tbody>
 </table>
 </div>
@@ -2017,14 +2017,16 @@ function buildMomentum(){
     let spend = 0, donasiCount = 0, donasiNominal = 0, pendingCount = 0, pendingNominal = 0;
 
     if(useMatchedFallback){
-      // Load dari server — pakai kpi_harian_chart yang sudah di-load ke window.harianaData
+      // Load dari server — pakai kpi_harian_chart
       const harianData = window._harianaData || [];
       harianData.forEach(r => {
         const tgl = r.tgl || '';
         if(!tgl || tgl < startD || tgl > endD) return;
-        spend += parseNominal(r.budget || 0);
-        donasiNominal += parseNominal(r.nominal || 0);
-        if(parseNominal(r.nominal||0) > 0) donasiCount++;
+        const nom = parseNominal(r.nominal || 0);
+        const spd = parseNominal(r.budget || 0);
+        spend += spd;
+        donasiNominal += nom;
+        if(nom > 0) donasiCount++; // hari aktif = hari yang ada donasi
       });
     } else {
       // Upload langsung — pakai rawIklan + rawDonasi
