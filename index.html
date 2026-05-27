@@ -969,7 +969,6 @@ if(avgDonasi>0&&avgDonasi<100000)recs.push({priority:'medium',title:'Naikkan Avg
 if(nonIklanRatioR>0.4)recs.push({priority:'medium',title:'Optimalkan Non-Iklan ('+Math.round(nonIklanRatioR*100)+'%)',text:'WA+organik '+Math.round(nonIklanRatioR*100)+'% dari total. Buat WA blast, aktifkan donasi berulang.'});
 if(roasGapR>2&&roasSuksesIklan>0)recs.push({priority:'low',title:'Gap ROAS All vs Iklan ('+roasGapR.toFixed(1)+'x)',text:'Channel non-iklan lebih efisien. Pertimbangkan alihkan sebagian budget ke WA broadcast.'});
 if(roasSuksesIklan>=7)recs.push({priority:'low',title:'ROAS '+roasSuksesIklan.toFixed(1)+'x Exceptional',text:'Buka program baru dengan creative serupa, ekspansi lookalike audience dari donatur existing.'});
-    text:'Pastikan UTM Content = nama Ad Name persis sama di Meta Ads Manager. Ini aktifkan exact matching per konten.'});
 
 document.getElementById('rekomendasiGrid').innerHTML=recs.map(r=>'<div class="rec-card priority-'+r.priority+'"><h4>'+r.title+'</h4><p>'+r.text+'</p></div>').join('');
 }
