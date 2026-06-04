@@ -1054,44 +1054,52 @@ datasets:[
 function buildCampaign(){
 const campCol=document.getElementById('colCampaign').value;
 const budgetCol=document.getElementById('colBudget').value;
+const convCol=document.getElementById('colConvValue')?.value;
 
-const campBudgets={};
+// Budget + conversion value per campaign dari file iklan
+const campBudgets={},campConv={},campAkun={};
 rawIklan.forEach(r=>{
 const camp=String(r[campCol]||'').trim();
 if(!camp)return;
-if(!campBudgets[camp])campBudgets[camp]=0;
-campBudgets[camp]+=parseNominal(r[budgetCol]);
-});
-
-const data=groupBy(getIklanMatchedData(),'_matchedCampaign',(k,v)=>({campaign:k,donasi:v.length,nominal:v.reduce((s,r)=>s+r._nominal,0),budget:campBudgets[k]||0})).sort((a,b)=>b.nominal-a.nominal);
-
-// Add akun info per campaign
-const campAkun={};
-rawIklan.forEach(r=>{
-const camp=String(r[campCol]||'').trim();
-if(!camp)return;
+campBudgets[camp]=(campBudgets[camp]||0)+parseNominal(r[budgetCol]);
+if(convCol&&convCol!=='-- Upload dulu --') campConv[camp]=(campConv[camp]||0)+parseNominal(r[convCol]);
 if(!campAkun[camp]&&r._akun)campAkun[camp]=r._akun;
 });
 
-let totalDonasi=0,totalNominal=0;
-data.forEach(d=>{totalDonasi+=d.donasi;totalNominal+=d.nominal;});
-// Total budget dari rawIklan (konsisten dengan Ringkasan)
-let totalBudget=0;
-rawIklan.forEach(r=>totalBudget+=parseNominal(r[budgetCol]));
+// Donasi count tetap dari matched data
+const campDonasiCount={};
+getIklanMatchedData().forEach(r=>{
+const c=r._matchedCampaign;
+campDonasiCount[c]=(campDonasiCount[c]||0)+1;
+});
+
+// Gabungkan: semua campaign dari file iklan
+const allCamps=new Set([...Object.keys(campBudgets),...Object.keys(campDonasiCount)]);
+const data=Array.from(allCamps).map(c=>({
+  campaign:c,
+  donasi:campDonasiCount[c]||0,
+  nominal:campConv[c]||0,
+  budget:campBudgets[c]||0
+})).sort((a,b)=>b.nominal-a.nominal);
+
+let totalDonasi=0,totalNominal=0,totalBudget=0;
+data.forEach(d=>{totalDonasi+=d.donasi;totalNominal+=d.nominal;totalBudget+=d.budget;});
 const avgRoas=totalBudget?(totalNominal/totalBudget).toFixed(2):0;
 const statusLabel=avgRoas>3?'Optimal':avgRoas>1?'Break Even':'Loss';
 const statusClass=avgRoas>3?'badge-success':avgRoas>1?'badge-warning':'badge-danger';
 
 const rows=data.map(d=>{
 const roas=d.budget?(d.nominal/d.budget).toFixed(2):0;
-const akun=campAkun[d.campaign]||'—';
-return'<tr><td>'+d.campaign+'</td><td><span class="badge badge-info">'+akun+'</span></td><td>'+d.donasi+'</td><td>'+rupiah(d.nominal)+'</td><td>'+rupiah(d.budget)+'</td><td>'+roas+'x</td><td><span class="badge '+(roas>3?'badge-success':roas>1?'badge-warning':'badge-danger')+'">'+(roas>3?'Optimal':roas>1?'Break Even':'Loss')+'</span></td></tr>';
+const akun=campAkun[d.campaign]||'\u2014';
+const sl=roas>3?'Optimal':roas>1?'Break Even':'Loss';
+const sc=roas>3?'badge-success':roas>1?'badge-warning':'badge-danger';
+return '<tr><td>'+d.campaign+'</td><td><span class="badge badge-info">'+akun+'</span></td><td>'+d.donasi+'</td><td>'+rupiah(d.nominal)+'</td><td>'+rupiah(d.budget)+'</td><td>'+roas+'x</td><td><span class="badge '+sc+'">'+sl+'</span></td></tr>';
 }).join('');
 
-const totalRow='<tr style="background:#f8fafc;font-weight:700;border-top:2px solid #1e40af"><td><strong>TOTAL / RATA-RATA</strong></td><td><strong>—</strong></td><td><strong>'+totalDonasi+'</strong></td><td><strong>'+rupiah(totalNominal)+'</strong></td><td><strong>'+rupiah(totalBudget)+'</strong></td><td><strong>'+avgRoas+'x</strong></td><td><span class="badge '+statusClass+'"><strong>'+statusLabel+'</strong></span></td></tr>';
+const totalRow='<tr style="background:#f8fafc;font-weight:700;border-top:2px solid #1e40af"><td><strong>TOTAL / RATA-RATA</strong></td><td><strong>\u2014</strong></td><td><strong>'+totalDonasi+'</strong></td><td><strong>'+rupiah(totalNominal)+'</strong></td><td><strong>'+rupiah(totalBudget)+'</strong></td><td><strong>'+avgRoas+'x</strong></td><td><span class="badge '+statusClass+'"><strong>'+statusLabel+'</strong></span></td></tr>';
 
 document.querySelector('#tableCampaign tbody').innerHTML=rows+totalRow;
-renderChart('chartCampaign','bar',{labels:data.map(d=>d.campaign),datasets:[{label:'Donasi',data:data.map(d=>d.nominal),backgroundColor:'#059669'},{label:'Budget',data:data.map(d=>d.budget),backgroundColor:'#dc2626'}]});
+renderChart('chartCampaign','bar',{labels:data.map(d=>d.campaign),datasets:[{label:'Conversion Value',data:data.map(d=>d.nominal),backgroundColor:'#059669'},{label:'Budget',data:data.map(d=>d.budget),backgroundColor:'#dc2626'}]});
 }
 
 function buildProgram(){
@@ -2016,6 +2024,13 @@ function removeMomentumRow(id){
   if(el) el.remove();
 }
 
+function hariKalender(startD, endD){
+  if(!startD||!endD) return 1;
+  const s=new Date(startD), e=new Date(endD);
+  if(isNaN(s)||isNaN(e)) return 1;
+  return Math.max(1, Math.round((e-s)/(1000*60*60*24))+1);
+}
+
 function buildMomentum(){
   const budgetCol = document.getElementById('colBudget').value;
   const nomCol = document.getElementById('colNominal').value;
@@ -2086,8 +2101,8 @@ function buildMomentum(){
         filtered.forEach(c=>{
           spend += parseNominal(c.spend||0);
           donasiNominal += parseNominal(c.sukses||0);
-          donasiCount++;
         });
+        donasiCount = hariKalender(startD, endD);
       } else {
         const harianData = window._harianaData || [];
         harianData.forEach(r => {
@@ -2097,8 +2112,8 @@ function buildMomentum(){
           const nomAll = r.sukses_all !== undefined ? parseNominal(r.sukses_all) : parseNominal(r.nominal || 0);
           spend += spd;
           donasiNominal += nomAll;
-          donasiCount++;
         });
+        donasiCount = hariKalender(startD, endD);
       }
     } else {
       // Upload langsung
@@ -2121,9 +2136,7 @@ function buildMomentum(){
             pendingNominal += r._nominal;
           }
         });
-        // Hari aktif = hari unik dari filtered dalam range
-        const hariSet = new Set(filtered.map(r=>r._tanggal).filter(t=>t&&t>=startD&&t<=endD));
-        donasiCount = hariSet.size;
+        donasiCount = hariKalender(startD, endD);
         // Spend dari rawIklan filter keyword + range
         const campCol2=document.getElementById('colCampaign')?.value;
         rawIklan.forEach(r=>{
@@ -2152,9 +2165,7 @@ function buildMomentum(){
             pendingNominal += nom;
           }
         });
-        // Hari aktif = hari unik dari matchedData dalam range
-        const hariSet = new Set(matchedData.map(r=>r._tanggal).filter(t=>t&&t>=startD&&t<=endD));
-        donasiCount = hariSet.size;
+        donasiCount = hariKalender(startD, endD);
       }
     }
 
@@ -2349,6 +2360,9 @@ function makeSortable(){
       const rows=allRows.filter(r=>!totalRows.includes(r));
       const parseVal=(cell)=>{
         const t=(cell?.textContent||'').trim();
+        // Deteksi tanggal YYYY-MM-DD atau DD/MM/YYYY -> pakai timestamp
+        if(/^\d{4}-\d{2}-\d{2}/.test(t)) return new Date(t).getTime();
+        if(/^\d{2}\/\d{2}\/\d{4}/.test(t)){const p=t.split('/');return new Date(p[2]+'-'+p[1]+'-'+p[0]).getTime();}
         const num=parseFloat(t.replace(/[^0-9.,-]/g,'').replace(/\.(?=\d{3})/g,'').replace(',','.'));
         return isNaN(num)?null:num;
       };
