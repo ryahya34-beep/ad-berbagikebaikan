@@ -2141,49 +2141,45 @@ function buildMomentum(){
         });
       }
     } else {
-      // Upload langsung — pakai rawIklan + rawDonasi
-      if(tglIklanCol){
-        rawIklan.forEach(r => {
-          const tgl = extractDateOnly(r[tglIklanCol]);
-          if(tgl >= startD && tgl <= endD) spend += parseNominal(r[budgetCol]);
-        });
-      } else {
-        const totalBudget = rawIklan.reduce((s,r) => s+parseNominal(r[budgetCol]), 0);
-        const start_ = new Date(startD), end_ = new Date(endD);
-        const days = Math.max(1, Math.round((end_-start_)/(1000*60*60*24))+1);
-        const allDates = new Set(matchedData.map(r=>r._tanggal).filter(d=>d));
-        const totalDays = allDates.size || 30;
-        spend = totalBudget * (days/totalDays);
-      }
-
+      // Upload langsung
       const keywords = mom.keyword ? mom.keyword.split(',').map(k=>k.trim().toLowerCase()).filter(Boolean) : [];
-      const filteredMatched = keywords.length
-        ? matchedData.filter(r=>{
-            const camp = String(r._matchedCampaign||'').toLowerCase();
-            return keywords.some(k=>camp.includes(k));
-          })
-        : null;
 
-      if(filteredMatched){
-        filteredMatched.forEach(r=>{
+      if(keywords.length){
+        // Filter matchedData by keyword campaign
+        const filtered = matchedData.filter(r=>{
+          const camp = String(r._matchedCampaign||'').toLowerCase();
+          return keywords.some(k=>camp.includes(k));
+        });
+        // Hitung nominal dari filtered
+        filtered.forEach(r=>{
           const tgl = r._tanggal||'';
           if(tgl < startD || tgl > endD) return;
           const st = String(r._status||'').toLowerCase().trim();
           if(['success','paid','completed','settlement','berhasil','sukses'].includes(st)){
-            donasiCount++; donasiNominal += r._nominal;
+            donasiNominal += r._nominal;
           } else if(['pending','waiting','menunggu','unpaid'].includes(st)){
-            pendingCount++; pendingNominal += r._nominal;
+            pendingNominal += r._nominal;
           }
         });
+        // Hari aktif = hari unik dari filtered dalam range
+        const hariSet = new Set(filtered.map(r=>r._tanggal).filter(t=>t&&t>=startD&&t<=endD));
+        donasiCount = hariSet.size;
+        // Spend dari rawIklan filter keyword + range
         const campCol2=document.getElementById('colCampaign')?.value;
-        const tglIklanCol2=document.getElementById('colTanggalIklan')?.value;
         rawIklan.forEach(r=>{
           const camp=String(r[campCol2]||'').toLowerCase();
           if(!keywords.some(k=>camp.includes(k)))return;
-          const tgl=extractDateOnly(r[tglIklanCol2]);
+          const tgl=extractDateOnly(r[tglIklanCol]);
           if(tgl&&tgl>=startD&&tgl<=endD) spend+=parseNominal(r[budgetCol]);
         });
       } else {
+        // Tidak ada keyword — hitung semua
+        if(tglIklanCol){
+          rawIklan.forEach(r => {
+            const tgl = extractDateOnly(r[tglIklanCol]);
+            if(tgl >= startD && tgl <= endD) spend += parseNominal(r[budgetCol]);
+          });
+        }
         rawDonasi.forEach(r => {
           if(fundCol && identifyChannel(r[fundCol]) === 'EXCLUDE') return;
           const tgl = extractDateOnly(r[tglDonasiCol]);
@@ -2191,11 +2187,14 @@ function buildMomentum(){
           const nom = parseNominal(r[nomCol]);
           const st = statCol ? String(r[statCol]||'').toLowerCase().trim() : 'success';
           if(['success','paid','completed','settlement','berhasil','sukses'].includes(st)){
-            donasiCount++; donasiNominal += nom;
+            donasiNominal += nom;
           } else if(['pending','waiting','menunggu','unpaid'].includes(st)){
-            pendingCount++; pendingNominal += nom;
+            pendingNominal += nom;
           }
         });
+        // Hari aktif = hari unik dari matchedData dalam range
+        const hariSet = new Set(matchedData.map(r=>r._tanggal).filter(t=>t&&t>=startD&&t<=endD));
+        donasiCount = hariSet.size;
       }
     }
 
