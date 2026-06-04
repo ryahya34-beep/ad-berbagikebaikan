@@ -1347,6 +1347,7 @@ if(tabName==='momentum'){
   },50);
 }
 document.getElementById('panel-'+tabName).classList.add('active');
+setTimeout(()=>makeSortable(),100);
 setTimeout(()=>{
 // Kalau ada serverChartData (atasan load dari server), rebuild dari sana
 if(serverChartData){
@@ -2317,6 +2318,55 @@ if(loadState()){console.log('Restored from localStorage');}
 else{console.log('No saved state');}
 },300);
 });
+
+// ===== Universal Table Sort =====
+function makeSortable(){
+  document.querySelectorAll('table[id^="table"] thead th').forEach(th=>{
+    if(th.dataset.sortReady)return;
+    th.dataset.sortReady='1';
+    th.style.cursor='pointer';
+    th.style.userSelect='none';
+    th.style.whiteSpace='nowrap';
+    if(!th.querySelector('.sort-ico')){
+      const ico=document.createElement('span');
+      ico.className='sort-ico';
+      ico.style.cssText='margin-left:5px;font-size:9px;color:#1e293b;opacity:0.35';
+      ico.textContent='\u25BC';
+      th.appendChild(ico);
+    }
+    th.onclick=function(){
+      const table=th.closest('table');
+      const tbody=table.querySelector('tbody');
+      const ths=Array.from(th.parentNode.children);
+      const idx=ths.indexOf(th);
+      const dir=th.dataset.sortDir==='asc'?'desc':'asc';
+      ths.forEach(h=>{h.dataset.sortDir='';const i=h.querySelector('.sort-ico');if(i){i.textContent='\u25BC';i.style.opacity='0.35';}});
+      th.dataset.sortDir=dir;
+      const ico=th.querySelector('.sort-ico');
+      if(ico){ico.textContent=dir==='asc'?'\u25B2':'\u25BC';ico.style.opacity='1';}
+      const allRows=Array.from(tbody.querySelectorAll('tr'));
+      const totalRows=allRows.filter(r=>r.style.fontWeight==='700'||/total|rata-rata/i.test(r.textContent));
+      const rows=allRows.filter(r=>!totalRows.includes(r));
+      const parseVal=(cell)=>{
+        const t=(cell?.textContent||'').trim();
+        const num=parseFloat(t.replace(/[^0-9.,-]/g,'').replace(/\.(?=\d{3})/g,'').replace(',','.'));
+        return isNaN(num)?null:num;
+      };
+      rows.sort((a,b)=>{
+        const ca=a.children[idx],cb=b.children[idx];
+        const na=parseVal(ca),nb=parseVal(cb);
+        let cmp;
+        if(na!==null&&nb!==null) cmp=na-nb;
+        else cmp=(ca?.textContent||'').localeCompare(cb?.textContent||'','id',{numeric:true});
+        return dir==='asc'?cmp:-cmp;
+      });
+      rows.forEach(r=>tbody.appendChild(r));
+      totalRows.forEach(r=>tbody.appendChild(r));
+    };
+  });
+}
+document.addEventListener('DOMContentLoaded',()=>setTimeout(makeSortable,500));
+
 </script>
 
 </body>
