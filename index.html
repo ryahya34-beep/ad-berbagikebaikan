@@ -188,6 +188,7 @@ th,td{padding:8px 10px;font-size:12px}
 <div class="form-group"><label>🎨 Ad Name (Iklan)</label><select id="colAdName"><option>-- Upload dulu --</option></select></div>
 <div class="form-group"><label>💰 Amount Spent (Iklan)</label><select id="colBudget"><option>-- Upload dulu --</option></select></div>
 <div class="form-group"><label>🛒 Conversion Value (Iklan)</label><select id="colConvValue"><option>-- Upload dulu --</option></select></div>
+<div class="form-group"><label>🛍️ Adds to Cart / Results (Iklan)</label><select id="colResults"><option>-- Upload dulu --</option></select></div>
 <div class="form-group"><label>🕌 Program (Donasi)</label><select id="colProgram"><option>-- Upload dulu --</option></select></div>
 <div class="form-group"><label>💵 Nominal Donasi</label><select id="colNominal"><option>-- Upload dulu --</option></select></div>
 <div class="form-group"><label>📅 Tanggal Donasi</label><select id="colTanggal"><option>-- Upload dulu --</option></select></div>
@@ -322,7 +323,7 @@ th,td{padding:8px 10px;font-size:12px}
 <div class="tab-panel" id="panel-campaign">
 <div class="card"><div class="card-header"><div class="card-title">🎯 Per Campaign (Matched Only)</div><button class="btn btn-secondary" onclick="exportTable('tableCampaign','Rekap_Campaign')">📥 Export</button></div>
 <div class="chart-container small"><canvas id="chartCampaign"></canvas></div>
-<div class="table-wrap" style="margin-top:20px"><table id="tableCampaign"><thead><tr><th>Campaign</th><th>Akun Iklan</th><th>Donasi</th><th>Nominal</th><th>Budget</th><th>ROAS</th><th>Status</th></tr></thead><tbody></tbody></table></div></div>
+<div class="table-wrap" style="margin-top:20px"><table id="tableCampaign"><thead><tr><th>Campaign</th><th>Akun Iklan</th><th>Adds to Cart</th><th>Conversion Value</th><th>Budget</th><th>ROAS</th><th>Status</th></tr></thead><tbody></tbody></table></div></div>
 </div>
 
 <div class="tab-panel" id="panel-program">
@@ -547,6 +548,7 @@ fill('colCampaign',allHeadersIklan,['campaign name','campaign','nama campaign','
 fill('colAdName',allHeadersIklan,['ad name','adname','nama iklan','creative','iklan']);
 fill('colBudget',allHeadersIklan,['amount spent','spent','budget','biaya','cost','amount']);
 fill('colConvValue',allHeadersIklan,['adds to cart conversion value','conversion value','purchase conversion value','website purchases conversion value','nilai konversi','conversion']);
+fill('colResults',allHeadersIklan,['adds to cart','website adds to cart','results','result','hasil','konversi']);
 fill('colTanggalIklan',allHeadersIklan,['date','tanggal','timestamp','waktu','tgl','reporting starts','day','hari']);
 }
 if(rawDonasi.length){
@@ -1055,29 +1057,22 @@ function buildCampaign(){
 const campCol=document.getElementById('colCampaign').value;
 const budgetCol=document.getElementById('colBudget').value;
 const convCol=document.getElementById('colConvValue')?.value;
+const resCol=document.getElementById('colResults')?.value;
 
-// Budget + conversion value per campaign dari file iklan
-const campBudgets={},campConv={},campAkun={};
+// Semua agregasi dari file iklan
+const campBudgets={},campConv={},campRes={},campAkun={};
 rawIklan.forEach(r=>{
 const camp=String(r[campCol]||'').trim();
 if(!camp)return;
 campBudgets[camp]=(campBudgets[camp]||0)+parseNominal(r[budgetCol]);
 if(convCol&&convCol!=='-- Upload dulu --') campConv[camp]=(campConv[camp]||0)+parseNominal(r[convCol]);
+if(resCol&&resCol!=='-- Upload dulu --') campRes[camp]=(campRes[camp]||0)+(parseFloat(String(r[resCol]||'0').replace(/[^0-9.]/g,''))||0);
 if(!campAkun[camp]&&r._akun)campAkun[camp]=r._akun;
 });
 
-// Donasi count tetap dari matched data
-const campDonasiCount={};
-getIklanMatchedData().forEach(r=>{
-const c=r._matchedCampaign;
-campDonasiCount[c]=(campDonasiCount[c]||0)+1;
-});
-
-// Gabungkan: semua campaign dari file iklan
-const allCamps=new Set([...Object.keys(campBudgets),...Object.keys(campDonasiCount)]);
-const data=Array.from(allCamps).map(c=>({
+const data=Object.keys(campBudgets).map(c=>({
   campaign:c,
-  donasi:campDonasiCount[c]||0,
+  donasi:Math.round(campRes[c]||0),
   nominal:campConv[c]||0,
   budget:campBudgets[c]||0
 })).sort((a,b)=>b.nominal-a.nominal);
