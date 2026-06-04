@@ -187,6 +187,7 @@ th,td{padding:8px 10px;font-size:12px}
 <div class="form-group"><label>📌 Campaign (Iklan)</label><select id="colCampaign"><option>-- Upload dulu --</option></select></div>
 <div class="form-group"><label>🎨 Ad Name (Iklan)</label><select id="colAdName"><option>-- Upload dulu --</option></select></div>
 <div class="form-group"><label>💰 Amount Spent (Iklan)</label><select id="colBudget"><option>-- Upload dulu --</option></select></div>
+<div class="form-group"><label>🛒 Conversion Value (Iklan)</label><select id="colConvValue"><option>-- Upload dulu --</option></select></div>
 <div class="form-group"><label>🕌 Program (Donasi)</label><select id="colProgram"><option>-- Upload dulu --</option></select></div>
 <div class="form-group"><label>💵 Nominal Donasi</label><select id="colNominal"><option>-- Upload dulu --</option></select></div>
 <div class="form-group"><label>📅 Tanggal Donasi</label><select id="colTanggal"><option>-- Upload dulu --</option></select></div>
@@ -335,7 +336,7 @@ th,td{padding:8px 10px;font-size:12px}
 <div class="card"><div class="card-header"><div class="card-title">🎨 Semua Konten/Ad (Scrollable)</div><button class="btn btn-secondary" onclick="exportTable('tableKonten','Rekap_Konten')">📥 Export</button></div>
 <div style="font-size:12px;color:#64748b;margin-bottom:12px">Semua konten dari semua campaign — scroll ke bawah untuk lihat lebih banyak</div>
 <div class="chart-container small"><canvas id="chartKonten"></canvas></div>
-<div class="table-wrap" style="margin-top:20px"><table id="tableKonten"><thead><tr><th>Konten</th><th>Campaign</th><th>Akun Iklan</th><th>Donasi</th><th>Nominal</th><th>ROAS</th><th>Efektivitas</th></tr></thead><tbody></tbody></table></div></div>
+<div class="table-wrap" style="margin-top:20px"><table id="tableKonten"><thead><tr><th>Konten</th><th>Campaign</th><th>Akun Iklan</th><th>Impressions</th><th>Conversion Value</th><th>ROAS</th><th>Efektivitas</th></tr></thead><tbody></tbody></table></div></div>
 </div>
 
 <div class="tab-panel" id="panel-channel">
@@ -545,6 +546,7 @@ if(rawIklan.length){
 fill('colCampaign',allHeadersIklan,['campaign name','campaign','nama campaign','kampanye']);
 fill('colAdName',allHeadersIklan,['ad name','adname','nama iklan','creative','iklan']);
 fill('colBudget',allHeadersIklan,['amount spent','spent','budget','biaya','cost','amount']);
+fill('colConvValue',allHeadersIklan,['adds to cart conversion value','conversion value','purchase conversion value','website purchases conversion value','nilai konversi','conversion']);
 fill('colTanggalIklan',allHeadersIklan,['date','tanggal','timestamp','waktu','tgl','reporting starts','day','hari']);
 }
 if(rawDonasi.length){
@@ -1129,7 +1131,9 @@ function buildKonten(){
 const campCol=document.getElementById('colCampaign').value;
 const adCol=document.getElementById('colAdName').value;
 const budgetCol=document.getElementById('colBudget').value;
+const convCol=document.getElementById('colConvValue')?.value;
 
+// Agregasi per ad langsung dari file iklan Meta
 const allAds={};
 const adAkun={};
 rawIklan.forEach(r=>{
@@ -1138,80 +1142,35 @@ const ad=String(r[adCol]||'').trim();
 if(!ad)return;
 const key=camp+'||'+ad;
 if(!allAds[key]){
-allAds[key]={campaign:camp,ad:ad,budget:0,clicks:0,impressions:0,donasi:0,nominal:0};
+allAds[key]={campaign:camp,ad:ad,budget:0,impressions:0,convValue:0};
 }
 allAds[key].budget+=parseNominal(r[budgetCol]);
-allAds[key].clicks+=parseFloat(r['Clicks (All)']||r['Clicks']||r['Link clicks']||r['clicks']||r['Click']||0);
-allAds[key].impressions+=parseFloat(r['Impressions']||r['impressions']||r['Imp']||0);
+allAds[key].impressions+=parseFloat(r['Impressions']||r['impressions']||r['Imp']||0)||0;
+if(convCol&&convCol!=='-- Upload dulu --') allAds[key].convValue+=parseNominal(r[convCol]);
 if(r._akun&&!adAkun[key])adAkun[key]=r._akun;
 });
 
-const campDonasi={};
-getIklanMatchedData().forEach(r=>{
-if(!campDonasi[r._matchedCampaign])campDonasi[r._matchedCampaign]={donasi:0,nominal:0};
-campDonasi[r._matchedCampaign].donasi++;
-campDonasi[r._matchedCampaign].nominal+=r._nominal;
-});
+const data=Object.values(allAds).sort((a,b)=>b.convValue-a.convValue);
 
-// Performance-indexed attribution: CTR-based weighting
-Object.values(allAds).forEach(ad=>{
-const camp=ad.campaign;
-const cDon=campDonasi[camp];
-if(!cDon||cDon.nominal===0)return;
-
-// Calculate performance score (CTR + budget blend)
-const ctr=ad.impressions>0?(ad.clicks/ad.impressions):0;
-const budgetShare=ad.budget/Math.max(1,Object.values(allAds).filter(a=>a.campaign===camp).reduce((s,a)=>s+a.budget,0));
-
-// Weight: 70% budget, 30% CTR performance (gives variety)
-const performanceScore=(budgetShare*0.7)+(ctr*0.3);
-
-const totalScore=Object.values(allAds).filter(a=>a.campaign===camp).reduce((s,a)=>{
-    const aCtr=a.impressions>0?(a.clicks/a.impressions):0;
-    const aBudgetShare=a.budget/Math.max(1,Object.values(allAds).filter(b=>b.campaign===camp).reduce((x,b)=>x+b.budget,0));
-    return s+(aBudgetShare*0.7)+(aCtr*0.3);
-},0);
-
-if(totalScore===0)return;
-const share=performanceScore/totalScore;
-ad.donasi=Math.round(cDon.donasi*share);
-ad.nominal=Math.round(cDon.nominal*share);
-});
-
-// Fix rounding drift
-Object.entries(campDonasi).forEach(([camp,cDon])=>{
-const campAds=Object.values(allAds).filter(a=>a.campaign===camp);
-const actualTotal=campAds.reduce((s,a)=>s+a.nominal,0);
-const diff=cDon.nominal-actualTotal;
-if(diff!==0&&campAds.length>0){
-    campAds.sort((a,b)=>b.nominal-a.nominal);
-    campAds[0].nominal+=diff;
-}
-});
-
-const data=Object.values(allAds).sort((a,b)=>b.nominal-a.nominal);
-
-let totalDonasi=0,totalNominal=0;
-data.forEach(d=>{totalDonasi+=d.donasi;totalNominal+=d.nominal;});
-// Total budget dari rawIklan (konsisten dengan Ringkasan)
-let totalBudget=0;
-rawIklan.forEach(r=>totalBudget+=parseNominal(r[budgetCol]));
-const avgRoas=totalBudget?(totalNominal/totalBudget).toFixed(2):0;
-const avgEf=avgRoas>10?'Sangat Efektif':avgRoas>5?'Efektif':avgRoas>2?'Cukup':totalDonasi>0?'Cukup':'Kurang';
-const efClass=avgRoas>5?'badge-success':avgRoas>2?'badge-warning':totalDonasi>0?'badge-warning':'badge-danger';
+let totalBudget=0,totalConv=0,totalImpr=0;
+data.forEach(d=>{totalBudget+=d.budget;totalConv+=d.convValue;totalImpr+=d.impressions;});
+const avgRoas=totalBudget?(totalConv/totalBudget).toFixed(2):0;
+const avgEf=avgRoas>5?'Sangat Efektif':avgRoas>3?'Efektif':avgRoas>2?'Cukup':totalConv>0?'Biasa':'Kurang';
+const efClass=avgRoas>5?'badge-success':avgRoas>3?'badge-success':avgRoas>2?'badge-warning':totalConv>0?'badge-warning':'badge-danger';
 
 const rows=data.map(d=>{
-const roas=d.budget?(d.nominal/d.budget).toFixed(2):0;
-const ef=roas>10?'Sangat Efektif':roas>5?'Efektif':roas>2?'Cukup':d.donasi>0?'Cukup':'Kurang';
-const akun=adAkun[d.campaign+'||'+d.ad]||'—';
-return'<tr><td>'+d.ad+'</td><td>'+d.campaign+'</td><td><span class="badge badge-info">'+akun+'</span></td><td>'+d.donasi+'</td><td>'+rupiah(d.nominal)+'</td><td>'+roas+'x</td><td><span class="badge '+(roas>5?'badge-success':roas>2?'badge-warning':d.donasi>0?'badge-warning':'badge-danger')+'">'+ef+'</span></td></tr>';
+const roas=d.budget?(d.convValue/d.budget).toFixed(2):0;
+const ef=roas>5?'Sangat Efektif':roas>3?'Efektif':roas>2?'Cukup':d.convValue>0?'Biasa':'Kurang';
+const efC=roas>5?'badge-success':roas>3?'badge-success':roas>2?'badge-warning':d.convValue>0?'badge-warning':'badge-danger';
+const akun=adAkun[d.campaign+'||'+d.ad]||'\u2014';
+return '<tr><td>'+d.ad+'</td><td>'+d.campaign+'</td><td><span class="badge badge-info">'+akun+'</span></td><td>'+d.impressions.toLocaleString('id-ID')+'</td><td>'+rupiah(d.convValue)+'</td><td>'+roas+'x</td><td><span class="badge '+efC+'">'+ef+'</span></td></tr>';
 }).join('');
 
-const totalRow='<tr style="background:#f8fafc;font-weight:700;border-top:2px solid #1e40af"><td><strong>TOTAL / RATA-RATA</strong></td><td><strong></strong></td><td><strong>—</strong></td><td><strong>'+totalDonasi+'</strong></td><td><strong>'+rupiah(totalNominal)+'</strong></td><td><strong>'+avgRoas+'x</strong></td><td><span class="badge '+efClass+'"><strong>'+avgEf+'</strong></span></td></tr>';
+const totalRow='<tr style="background:#f8fafc;font-weight:700;border-top:2px solid #1e40af"><td><strong>TOTAL / RATA-RATA</strong></td><td></td><td><strong>\u2014</strong></td><td><strong>'+totalImpr.toLocaleString('id-ID')+'</strong></td><td><strong>'+rupiah(totalConv)+'</strong></td><td><strong>'+avgRoas+'x</strong></td><td><span class="badge '+efClass+'"><strong>'+avgEf+'</strong></span></td></tr>';
 
 document.querySelector('#tableKonten tbody').innerHTML=rows+totalRow;
 
-renderChart('chartKonten','bar',{labels:data.slice(0,10).map(d=>d.ad.substring(0,20)),datasets:[{label:'Nominal',data:data.slice(0,10).map(d=>d.nominal),backgroundColor:'#1e40af'},{label:'Budget',data:data.slice(0,10).map(d=>d.budget),backgroundColor:'#f59e0b'}]});
+renderChart('chartKonten','bar',{labels:data.slice(0,10).map(d=>d.ad.substring(0,20)),datasets:[{label:'Conversion Value',data:data.slice(0,10).map(d=>d.convValue),backgroundColor:'#1e40af'},{label:'Budget',data:data.slice(0,10).map(d=>d.budget),backgroundColor:'#f59e0b'}]});
 }
 
 function buildChannel(){
