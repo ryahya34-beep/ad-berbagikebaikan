@@ -336,7 +336,7 @@ th,td{padding:8px 10px;font-size:12px}
 <div class="card"><div class="card-header"><div class="card-title">🎨 Semua Konten/Ad (Scrollable)</div><button class="btn btn-secondary" onclick="exportTable('tableKonten','Rekap_Konten')">📥 Export</button></div>
 <div style="font-size:12px;color:#64748b;margin-bottom:12px">Semua konten dari semua campaign — scroll ke bawah untuk lihat lebih banyak</div>
 <div class="chart-container small"><canvas id="chartKonten"></canvas></div>
-<div class="table-wrap" style="margin-top:20px"><table id="tableKonten"><thead><tr><th>Konten</th><th>Campaign</th><th>Akun Iklan</th><th>Impressions</th><th>Conversion Value</th><th>ROAS</th><th>Efektivitas</th></tr></thead><tbody></tbody></table></div></div>
+<div class="table-wrap" style="margin-top:20px"><table id="tableKonten"><thead><tr><th>Konten</th><th>Campaign</th><th>Akun Iklan</th><th>Budget</th><th>Conversion Value</th><th>ROAS</th><th>Efektivitas</th></tr></thead><tbody></tbody></table></div></div>
 </div>
 
 <div class="tab-panel" id="panel-channel">
@@ -1163,10 +1163,10 @@ const roas=d.budget?(d.convValue/d.budget).toFixed(2):0;
 const ef=roas>5?'Sangat Efektif':roas>3?'Efektif':roas>2?'Cukup':d.convValue>0?'Biasa':'Kurang';
 const efC=roas>5?'badge-success':roas>3?'badge-success':roas>2?'badge-warning':d.convValue>0?'badge-warning':'badge-danger';
 const akun=adAkun[d.campaign+'||'+d.ad]||'\u2014';
-return '<tr><td>'+d.ad+'</td><td>'+d.campaign+'</td><td><span class="badge badge-info">'+akun+'</span></td><td>'+d.impressions.toLocaleString('id-ID')+'</td><td>'+rupiah(d.convValue)+'</td><td>'+roas+'x</td><td><span class="badge '+efC+'">'+ef+'</span></td></tr>';
+return '<tr><td>'+d.ad+'</td><td>'+d.campaign+'</td><td><span class="badge badge-info">'+akun+'</span></td><td>'+rupiah(d.budget)+'</td><td>'+rupiah(d.convValue)+'</td><td>'+roas+'x</td><td><span class="badge '+efC+'">'+ef+'</span></td></tr>';
 }).join('');
 
-const totalRow='<tr style="background:#f8fafc;font-weight:700;border-top:2px solid #1e40af"><td><strong>TOTAL / RATA-RATA</strong></td><td></td><td><strong>\u2014</strong></td><td><strong>'+totalImpr.toLocaleString('id-ID')+'</strong></td><td><strong>'+rupiah(totalConv)+'</strong></td><td><strong>'+avgRoas+'x</strong></td><td><span class="badge '+efClass+'"><strong>'+avgEf+'</strong></span></td></tr>';
+const totalRow='<tr style="background:#f8fafc;font-weight:700;border-top:2px solid #1e40af"><td><strong>TOTAL / RATA-RATA</strong></td><td></td><td><strong>\u2014</strong></td><td><strong>'+rupiah(totalBudget)+'</strong></td><td><strong>'+rupiah(totalConv)+'</strong></td><td><strong>'+avgRoas+'x</strong></td><td><span class="badge '+efClass+'"><strong>'+avgEf+'</strong></span></td></tr>';
 
 document.querySelector('#tableKonten tbody').innerHTML=rows+totalRow;
 
