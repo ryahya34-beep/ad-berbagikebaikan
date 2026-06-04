@@ -2043,6 +2043,20 @@ function buildMomentum(){
   // Kalau load dari server, rawDonasi/rawIklan kosong — pakai matchedData sebagai fallback
   const useMatchedFallback = !rawIklan.length && (matchedData.length > 0 || (window._harianaData && window._harianaData.length > 0));
 
+  // Tampilkan/sembunyikan hint lintas bulan
+  let hintEl = document.getElementById('momentumHint');
+  if(!hintEl){
+    hintEl = document.createElement('div');
+    hintEl.id = 'momentumHint';
+    const inputArea = document.getElementById('momentumInputArea');
+    inputArea.parentNode.insertBefore(hintEl, inputArea);
+  }
+  if(useMatchedFallback){
+    hintEl.innerHTML = '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#1e40af">💡 <strong>Data dari server (1 bulan).</strong> Untuk momentum lintas bulan yang akurat, upload file iklan + donasi multi-bulan langsung.</div>';
+  } else {
+    hintEl.innerHTML = '';
+  }
+
   // Collect momentum rows dari DOM
   const rows = document.querySelectorAll('#momentumList > div');
   if(!rows.length){
