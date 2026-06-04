@@ -1581,8 +1581,33 @@ per_channel:[{html:htmlChannel}],
 per_konten:[{html:htmlKonten}],
 per_kpi:{kpiSpent,kpiSuksesAll,kpiPendingAll,kpiSuksesMeta,kpiPendingMeta,kpiRoasIklan,kpiRoasTotal,kpiJumlah,kpiAvg,htmlAnalisa,htmlRekomendasi,htmlForecast},
 kpi_harian_chart:harian.slice(0,60),
+kpi_campaign_data:JSON.stringify(collectCampaignData()),
 chart_data:collectChartData()
 };
+}
+
+function collectCampaignData(){
+const campCol=document.getElementById('colCampaign')?.value;
+const budgetCol=document.getElementById('colBudget')?.value;
+if(!campCol||!budgetCol)return[];
+const campBudgets={};
+rawIklan.forEach(r=>{
+  const c=String(r[campCol]||'').trim();
+  if(c)campBudgets[c]=(campBudgets[c]||0)+parseNominal(r[budgetCol]);
+});
+const campData={};
+getIklanMatchedData().forEach(r=>{
+  const c=r._matchedCampaign||'Unmatched';
+  if(!campData[c])campData[c]={campaign:c,spend:0,sukses:0,pending:0,count:0};
+  campData[c].spend=campBudgets[c]||0;
+  const st=r._status||'';
+  if(['success','paid','completed','settlement','berhasil','sukses'].includes(st)){
+    campData[c].sukses+=r._nominal;campData[c].count++;
+  } else if(['pending','waiting','menunggu','unpaid'].includes(st)){
+    campData[c].pending+=r._nominal;
+  }
+});
+return Object.values(campData).sort((a,b)=>b.sukses-a.sukses);
 }
 
 function collectChartData(){
@@ -1631,7 +1656,7 @@ try{
 const d=collectAgregatData();
 
 // Step 1: upsert data numerik + KPI dulu (ringan)
-const base={periode,total_spent:d.total_spent,sukses_all:d.sukses_all,pending_all:d.pending_all,sukses_iklan:d.sukses_iklan,pending_iklan:d.pending_iklan,jumlah_donasi:d.jumlah_donasi,avg_donasi:d.avg_donasi,roas_sukses:d.roas_sukses,roas_all:d.roas_all,per_kpi:d.per_kpi,kpi_harian_chart:d.kpi_harian_chart,keterangan:'Saved '+new Date().toLocaleString('id-ID')};
+const base={periode,total_spent:d.total_spent,sukses_all:d.sukses_all,pending_all:d.pending_all,sukses_iklan:d.sukses_iklan,pending_iklan:d.pending_iklan,jumlah_donasi:d.jumlah_donasi,avg_donasi:d.avg_donasi,roas_sukses:d.roas_sukses,roas_all:d.roas_all,per_kpi:d.per_kpi,kpi_harian_chart:d.kpi_harian_chart,kpi_campaign_data:d.kpi_campaign_data,keterangan:'Saved '+new Date().toLocaleString('id-ID')};
 
 // Cek existing
 const{data:ex}=await supa.from('laporan_iklan').select('id').eq('periode',periode).maybeSingle();
@@ -1837,6 +1862,9 @@ if(cd.chartForecast)renderChart('chartForecast','line',cd.chartForecast);
 status.textContent='✅ Laporan "'+data.periode+'" berhasil dimuat';status.style.color='#059669';
 // Simpan harian data untuk Momentum tab
 if(data.kpi_harian_chart) window._harianaData=data.kpi_harian_chart;
+if(data.kpi_campaign_data){
+  try{window._campaignData=JSON.parse(data.kpi_campaign_data);}catch(e){window._campaignData=[];}
+} else {window._campaignData=[];}
 setTimeout(()=>{
   if(window._harianaData && window._harianaData.length) buildForecast();
   if(document.querySelectorAll('#momentumList > div').length) buildMomentum();
@@ -2069,7 +2097,8 @@ function buildMomentum(){
     const name = row.querySelector('.mom-name').value.trim();
     const start = row.querySelector('.mom-start').value;
     const end = row.querySelector('.mom-end').value;
-    if(name && start && end) momenta.push({name, start, end});
+    const keyword = row.querySelector('.mom-keyword')?.value.trim()||'';
+    if(name && start && end) momenta.push({name, start, end, keyword});
   });
 
   if(!momenta.length){
@@ -2085,17 +2114,29 @@ function buildMomentum(){
     let spend = 0, donasiCount = 0, donasiNominal = 0, pendingCount = 0, pendingNominal = 0;
 
     if(useMatchedFallback){
-      // Load dari server — pakai kpi_harian_chart
-      const harianData = window._harianaData || [];
-      harianData.forEach(r => {
-        const tgl = r.tgl || '';
-        if(!tgl || tgl < startD || tgl > endD) return;
-        const spd = parseNominal(r.budget || 0);
-        const nomAll = r.sukses_all !== undefined ? parseNominal(r.sukses_all) : parseNominal(r.nominal || 0);
-        spend += spd;
-        donasiNominal += nomAll;
-        donasiCount++;
-      });
+      // Load dari server
+      const keywords = mom.keyword ? mom.keyword.split(',').map(k=>k.trim().toLowerCase()).filter(Boolean) : [];
+      if(keywords.length && window._campaignData && window._campaignData.length){
+        const filtered = window._campaignData.filter(c=>
+          keywords.some(k=>String(c.campaign||'').toLowerCase().includes(k))
+        );
+        filtered.forEach(c=>{
+          spend += parseNominal(c.spend||0);
+          donasiNominal += parseNominal(c.sukses||0);
+          donasiCount++;
+        });
+      } else {
+        const harianData = window._harianaData || [];
+        harianData.forEach(r => {
+          const tgl = r.tgl || '';
+          if(!tgl || tgl < startD || tgl > endD) return;
+          const spd = parseNominal(r.budget || 0);
+          const nomAll = r.sukses_all !== undefined ? parseNominal(r.sukses_all) : parseNominal(r.nominal || 0);
+          spend += spd;
+          donasiNominal += nomAll;
+          donasiCount++;
+        });
+      }
     } else {
       // Upload langsung — pakai rawIklan + rawDonasi
       if(tglIklanCol){
@@ -2112,18 +2153,47 @@ function buildMomentum(){
         spend = totalBudget * (days/totalDays);
       }
 
-      rawDonasi.forEach(r => {
-        if(fundCol && identifyChannel(r[fundCol]) === 'EXCLUDE') return;
-        const tgl = extractDateOnly(r[tglDonasiCol]);
-        if(tgl < startD || tgl > endD) return;
-        const nom = parseNominal(r[nomCol]);
-        const st = statCol ? String(r[statCol]||'').toLowerCase().trim() : 'success';
-        if(['success','paid','completed','settlement','berhasil','sukses'].includes(st)){
-          donasiCount++; donasiNominal += nom;
-        } else if(['pending','waiting','menunggu','unpaid'].includes(st)){
-          pendingCount++; pendingNominal += nom;
-        }
-      });
+      const keywords = mom.keyword ? mom.keyword.split(',').map(k=>k.trim().toLowerCase()).filter(Boolean) : [];
+      const filteredMatched = keywords.length
+        ? matchedData.filter(r=>{
+            const camp = String(r._matchedCampaign||'').toLowerCase();
+            return keywords.some(k=>camp.includes(k));
+          })
+        : null;
+
+      if(filteredMatched){
+        filteredMatched.forEach(r=>{
+          const tgl = r._tanggal||'';
+          if(tgl < startD || tgl > endD) return;
+          const st = String(r._status||'').toLowerCase().trim();
+          if(['success','paid','completed','settlement','berhasil','sukses'].includes(st)){
+            donasiCount++; donasiNominal += r._nominal;
+          } else if(['pending','waiting','menunggu','unpaid'].includes(st)){
+            pendingCount++; pendingNominal += r._nominal;
+          }
+        });
+        const campCol2=document.getElementById('colCampaign')?.value;
+        const tglIklanCol2=document.getElementById('colTanggalIklan')?.value;
+        rawIklan.forEach(r=>{
+          const camp=String(r[campCol2]||'').toLowerCase();
+          if(!keywords.some(k=>camp.includes(k)))return;
+          const tgl=extractDateOnly(r[tglIklanCol2]);
+          if(tgl&&tgl>=startD&&tgl<=endD) spend+=parseNominal(r[budgetCol]);
+        });
+      } else {
+        rawDonasi.forEach(r => {
+          if(fundCol && identifyChannel(r[fundCol]) === 'EXCLUDE') return;
+          const tgl = extractDateOnly(r[tglDonasiCol]);
+          if(tgl < startD || tgl > endD) return;
+          const nom = parseNominal(r[nomCol]);
+          const st = statCol ? String(r[statCol]||'').toLowerCase().trim() : 'success';
+          if(['success','paid','completed','settlement','berhasil','sukses'].includes(st)){
+            donasiCount++; donasiNominal += nom;
+          } else if(['pending','waiting','menunggu','unpaid'].includes(st)){
+            pendingCount++; pendingNominal += nom;
+          }
+        });
+      }
     }
 
     const roas = spend > 0 ? donasiNominal/spend : 0;
