@@ -2031,6 +2031,9 @@ function addMomentumRow(preset){
 <input type="date" value="${p.end}"
   style="flex:1;min-width:130px;padding:8px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px"
   class="mom-end">
+<input type="text" placeholder="Keyword campaign (misal: qurban,sbq)" value="${p.keyword||''}"
+  style="flex:3;min-width:180px;padding:8px 12px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px"
+  class="mom-keyword">
 <div style="display:flex;gap:4px">
 ${MOMENTUM_PRESETS.map(pr => `<button onclick="applyPreset('${id}','${pr.name}','${pr.start}','${pr.end}')" 
   style="padding:4px 8px;background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;border-radius:4px;font-size:11px;cursor:pointer;white-space:nowrap">${pr.name.split(' ')[0]}</button>`).join('')}
