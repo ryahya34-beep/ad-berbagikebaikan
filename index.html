@@ -1699,7 +1699,7 @@ const{data,error}=await supa.from('laporan_iklan').select('id,periode,created_at
 console.log('muatDariServer result:',{data,error});
 if(data&&!error) localStorage.setItem('laporan_list_cache',JSON.stringify(data));
 if(error)throw error;
-if(!data.length){listEl.innerHTML='<div style="font-size:13px;color:#64748b">Belum ada laporan tersimpan.</div>';status.textContent='';return;}
+if(!data.length){listEl.innerHTML='<div style="padding:12px;text-align:center"><p style="font-size:13px;color:#64748b;margin-bottom:12px">Belum ada laporan tersimpan.</p><button onclick="document.getElementById(\'laporanList\').style.display=\'none\'" style="padding:6px 16px;background:#64748b;color:white;border:none;border-radius:6px;font-size:13px;cursor:pointer">Tutup</button></div>';status.textContent='';return;}
 status.textContent='';
 listEl.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-size:12px;font-weight:600;color:#1e40af">📋 Laporan tersimpan — klik untuk tampilkan:</div><button id="closeLaporanListBtn" style="background:transparent;border:none;font-size:18px;cursor:pointer;color:#64748b;line-height:1">✕</button></div>'+
 data.map(d=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:white;border:1px solid #e2e8f0;border-radius:6px;margin-bottom:6px">
