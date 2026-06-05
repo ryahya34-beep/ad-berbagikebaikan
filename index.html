@@ -806,15 +806,20 @@ const lc=s=>String(s||'').trim().toLowerCase();
 let matchedCamp='Unmatched';
 let matchedAd='';
 
-// 1. Exact via UTM content (ad name)
-if(info.utmContent){
-  const adRow=rawIklan.find(r=>lc(r[adCol2])===lc(info.utmContent));
-  if(adRow){matchedAd=String(adRow[adCol2]||'').trim();matchedCamp=String(adRow[campCol2]||'').trim();}
+// 1. Exact via UTM campaign + content (kombinasi unik)
+if(info.utmCampaign&&info.utmContent){
+  const row=rawIklan.find(r=>lc(r[campCol2])===lc(info.utmCampaign)&&lc(r[adCol2])===lc(info.utmContent));
+  if(row){matchedCamp=String(row[campCol2]||'').trim();matchedAd=String(row[adCol2]||'').trim();}
 }
-// 2. Exact via UTM campaign
+// 2. Hanya UTM campaign (tanpa content valid) -> match campaign saja, ad kosong
 if(matchedCamp==='Unmatched'&&info.utmCampaign){
   const found=rawIklan.find(r=>lc(r[campCol2])===lc(info.utmCampaign));
   if(found)matchedCamp=String(found[campCol2]||'').trim();
+}
+// 3. Hanya UTM content (tanpa campaign) -> match ad pertama
+if(matchedCamp==='Unmatched'&&info.utmContent){
+  const adRow=rawIklan.find(r=>lc(r[adCol2])===lc(info.utmContent));
+  if(adRow){matchedAd=String(adRow[adCol2]||'').trim();matchedCamp=String(adRow[campCol2]||'').trim();}
 }
 // 3. Fallback fuzzy program (bulan lama tanpa UTM)
 if(matchedCamp==='Unmatched'&&channel==='Iklan'){
@@ -1220,23 +1225,22 @@ if(convCol&&convCol!=='-- Upload dulu --') allAds[key].convValue+=parseNominal(r
 if(r._akun&&!adAkun[key])adAkun[key]=r._akun;
 });
 
-// Donasi real per ad dari matchedData (via utm_content -> _matchedAd), sukses only
+// Donasi real per ad dari matchedData — key = campaign||ad (kombinasi unik)
 const lc=s=>String(s||'').trim().toLowerCase();
 const adRealNom={},adRealCount={};
 matchedData.forEach(r=>{
 if(!r._matchedAd||r._channel!=='Iklan')return;
 const st=String(r._status||'').toLowerCase().trim();
 if(!['success','paid','completed','settlement','berhasil','sukses'].includes(st))return;
-const k=lc(r._matchedAd);
+const k=lc(r._matchedCampaign)+'||'+lc(r._matchedAd);
 adRealNom[k]=(adRealNom[k]||0)+r._nominal;
 adRealCount[k]=(adRealCount[k]||0)+1;
 });
 
-const data=Object.values(allAds).map(d=>({
-  ...d,
-  realNom:adRealNom[lc(d.ad)]||0,
-  realCount:adRealCount[lc(d.ad)]||0
-})).sort((a,b)=>b.convValue-a.convValue);
+const data=Object.values(allAds).map(d=>{
+  const k=lc(d.campaign)+'||'+lc(d.ad);
+  return {...d,realNom:adRealNom[k]||0,realCount:adRealCount[k]||0};
+}).sort((a,b)=>b.convValue-a.convValue);
 
 let tBudget=0,tConv=0,tRealNom=0,tRealCount=0;
 data.forEach(d=>{tBudget+=d.budget;tConv+=d.convValue;tRealNom+=d.realNom;tRealCount+=d.realCount;});
