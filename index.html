@@ -795,12 +795,32 @@ validDonasiCache.forEach(don=>{
 const prog=String(don[progCol]||'').trim();
 const nominal=parseNominal(don[nomCol]);
 const tgl=extractDateOnly(don[tglCol]);
-const channel=fundCol?identifyChannel(don[fundCol]):'Organik';
+const info=identifyChannelRow(don);
+const channel=info.channel;
 const status=statCol?String(don[statCol]||'').toLowerCase().trim():'success';
 
+const campCol2=document.getElementById('colCampaign').value;
+const adCol2=document.getElementById('colAdName').value;
+const lc=s=>String(s||'').trim().toLowerCase();
+
 let matchedCamp='Unmatched';
-for(const [camp,mappedProg] of Object.entries(campaignToProgram)){
-if(similarity(prog,mappedProg)>0.5){matchedCamp=camp;break;}
+let matchedAd='';
+
+// 1. Exact via UTM content (ad name)
+if(info.utmContent){
+  const adRow=rawIklan.find(r=>lc(r[adCol2])===lc(info.utmContent));
+  if(adRow){matchedAd=String(adRow[adCol2]||'').trim();matchedCamp=String(adRow[campCol2]||'').trim();}
+}
+// 2. Exact via UTM campaign
+if(matchedCamp==='Unmatched'&&info.utmCampaign){
+  const found=rawIklan.find(r=>lc(r[campCol2])===lc(info.utmCampaign));
+  if(found)matchedCamp=String(found[campCol2]||'').trim();
+}
+// 3. Fallback fuzzy program (bulan lama tanpa UTM)
+if(matchedCamp==='Unmatched'&&channel==='Iklan'){
+  for(const [camp,mappedProg] of Object.entries(campaignToProgram)){
+  if(similarity(prog,mappedProg)>0.5){matchedCamp=camp;break;}
+  }
 }
 
 if(matchedCamp!=='Unmatched')matchCount++;
@@ -808,7 +828,7 @@ if(matchedCamp!=='Unmatched')matchCount++;
 matchedData.push({
 ...don,
 _matchedCampaign:matchedCamp,
-_matchedAd:'',
+_matchedAd:matchedAd,
 _amountSpent:0,
 _impressions:0,
 _clicks:0,
