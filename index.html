@@ -829,20 +829,23 @@ jumlahPending++;
 }
 });
 
-// IKLAN MATCHED — split sukses vs pending
+// IKLAN = semua donasi channel Iklan (fundraiser Berbagi Kebaikan), tanpa peduli match campaign
 let suksesMeta=0,pendingMeta=0;
 let jumlahSuksesMeta=0,jumlahPendingMeta=0;
 let totalMatchedIklan=0;
 
-const iklanData=getIklanMatchedData();
-iklanData.forEach(r=>{
-totalMatchedIklan+=r._nominal;
-const st=r._status;
+rawDonasi.forEach(r=>{
+if(!fundCol) return;
+const ch=identifyChannel(r[fundCol]);
+if(ch!=='Iklan') return;
+const nom=parseNominal(r[nomCol]);
+const st=statCol?String(r[statCol]||'').toLowerCase().trim():'success';
+totalMatchedIklan+=nom;
 if(st==='success'||st==='paid'||st==='completed'||st==='settlement'||st==='berhasil'||st==='sukses'){
-suksesMeta+=r._nominal;
+suksesMeta+=nom;
 jumlahSuksesMeta++;
 }else if(st==='pending'||st==='waiting'||st==='menunggu'||st==='unpaid'){
-pendingMeta+=r._nominal;
+pendingMeta+=nom;
 jumlahPendingMeta++;
 }
 });
@@ -983,14 +986,22 @@ const campCol=document.getElementById('colCampaign').value;
 const budgetCol=document.getElementById('colBudget').value;
 const tglIklanCol=document.getElementById('colTanggalIklan').value;
 
-const iklanData=getIklanMatchedData();
+const nomCol=document.getElementById('colNominal').value;
+const statCol=document.getElementById('colStatus').value;
+const fundCol=document.getElementById('colFundraiser').value;
+const tglDonasiCol=document.getElementById('colTanggal').value;
 
 const dailyGroups={};
-iklanData.forEach(r=>{
-const tgl=r._tanggal||'Unknown';
+// Donasi: semua channel Iklan (sukses only), per tanggal donasi
+rawDonasi.forEach(r=>{
+if(fundCol&&identifyChannel(r[fundCol])!=='Iklan')return;
+const st=statCol?String(r[statCol]||'').toLowerCase().trim():'success';
+if(!['success','paid','completed','settlement','berhasil','sukses'].includes(st))return;
+const tgl=extractDateOnly(r[tglDonasiCol]);
+if(!tgl)return;
 if(!dailyGroups[tgl])dailyGroups[tgl]={donasi:0,nominal:0,budget:0};
 dailyGroups[tgl].donasi++;
-dailyGroups[tgl].nominal+=r._nominal;
+dailyGroups[tgl].nominal+=parseNominal(r[nomCol]);
 });
 
 // Budget: always from rawIklan (independent of status filter)
