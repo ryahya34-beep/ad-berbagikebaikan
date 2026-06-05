@@ -325,7 +325,7 @@ th,td{padding:8px 10px;font-size:12px}
 <div class="tab-panel" id="panel-campaign">
 <div class="card"><div class="card-header"><div class="card-title">🎯 Per Campaign (Matched Only)</div><button class="btn btn-secondary" onclick="exportTable('tableCampaign','Rekap_Campaign')">📥 Export</button></div>
 <div class="chart-container small"><canvas id="chartCampaign"></canvas></div>
-<div class="table-wrap" style="margin-top:20px"><table id="tableCampaign"><thead><tr><th>Campaign</th><th>Akun Iklan</th><th>Adds to Cart</th><th>Conversion Value</th><th>Budget</th><th>ROAS</th><th>Status</th></tr></thead><tbody></tbody></table></div></div>
+<div class="table-wrap" style="margin-top:20px"><table id="tableCampaign"><thead><tr><th>Campaign</th><th>Akun Iklan</th><th>Adds to Cart</th><th>Conversion Value</th><th>Budget</th><th>ROAS Meta</th><th>Donasi Real</th><th>ROAS Real</th><th>Status</th></tr></thead><tbody></tbody></table></div></div>
 </div>
 
 <div class="tab-panel" id="panel-program">
@@ -1093,7 +1093,7 @@ const budgetCol=document.getElementById('colBudget').value;
 const convCol=document.getElementById('colConvValue')?.value;
 const resCol=document.getElementById('colResults')?.value;
 
-// Semua agregasi dari file iklan
+// Agregasi dari file iklan
 const campBudgets={},campConv={},campRes={},campAkun={};
 rawIklan.forEach(r=>{
 const camp=String(r[campCol]||'').trim();
@@ -1104,31 +1104,48 @@ if(resCol&&resCol!=='-- Upload dulu --') campRes[camp]=(campRes[camp]||0)+(parse
 if(!campAkun[camp]&&r._akun)campAkun[camp]=r._akun;
 });
 
+// Donasi real per campaign dari matchedData (UTM/fuzzy), sukses only
+const campRealNom={},campRealCount={};
+matchedData.forEach(r=>{
+if(r._matchedCampaign==='Unmatched'||r._channel!=='Iklan')return;
+const st=String(r._status||'').toLowerCase().trim();
+if(!['success','paid','completed','settlement','berhasil','sukses'].includes(st))return;
+const c=r._matchedCampaign;
+campRealNom[c]=(campRealNom[c]||0)+r._nominal;
+campRealCount[c]=(campRealCount[c]||0)+1;
+});
+
 const data=Object.keys(campBudgets).map(c=>({
   campaign:c,
   donasi:Math.round(campRes[c]||0),
   nominal:campConv[c]||0,
-  budget:campBudgets[c]||0
+  budget:campBudgets[c]||0,
+  realNom:campRealNom[c]||0,
+  realCount:campRealCount[c]||0
 })).sort((a,b)=>b.nominal-a.nominal);
 
-let totalDonasi=0,totalNominal=0,totalBudget=0;
-data.forEach(d=>{totalDonasi+=d.donasi;totalNominal+=d.nominal;totalBudget+=d.budget;});
-const avgRoas=totalBudget?(totalNominal/totalBudget).toFixed(2):0;
-const statusLabel=avgRoas>3?'Optimal':avgRoas>1?'Break Even':'Loss';
-const statusClass=avgRoas>3?'badge-success':avgRoas>1?'badge-warning':'badge-danger';
+let tDonasi=0,tNominal=0,tBudget=0,tRealNom=0,tRealCount=0;
+data.forEach(d=>{tDonasi+=d.donasi;tNominal+=d.nominal;tBudget+=d.budget;tRealNom+=d.realNom;tRealCount+=d.realCount;});
+const avgRoasMeta=tBudget?(tNominal/tBudget).toFixed(2):0;
+const avgRoasReal=tBudget?(tRealNom/tBudget).toFixed(2):0;
+const statusLabel=avgRoasReal>3?'Optimal':avgRoasReal>1?'Break Even':'Loss';
+const statusClass=avgRoasReal>3?'badge-success':avgRoasReal>1?'badge-warning':'badge-danger';
 
 const rows=data.map(d=>{
-const roas=d.budget?(d.nominal/d.budget).toFixed(2):0;
+const roasMeta=d.budget?(d.nominal/d.budget).toFixed(2):0;
+const roasReal=d.budget?(d.realNom/d.budget).toFixed(2):0;
 const akun=campAkun[d.campaign]||'\u2014';
-const sl=roas>3?'Optimal':roas>1?'Break Even':'Loss';
-const sc=roas>3?'badge-success':roas>1?'badge-warning':'badge-danger';
-return '<tr><td>'+d.campaign+'</td><td><span class="badge badge-info">'+akun+'</span></td><td>'+d.donasi+'</td><td>'+rupiah(d.nominal)+'</td><td>'+rupiah(d.budget)+'</td><td>'+roas+'x</td><td><span class="badge '+sc+'">'+sl+'</span></td></tr>';
+const sl=roasReal>3?'Optimal':roasReal>1?'Break Even':d.realNom>0?'Loss':'No Data';
+const sc=roasReal>3?'badge-success':roasReal>1?'badge-warning':d.realNom>0?'badge-danger':'badge-info';
+const realNomDisp=d.realNom>0?rupiah(d.realNom)+' ('+d.realCount+')':'\u2014';
+const roasRealDisp=d.realNom>0?roasReal+'x':'\u2014';
+return '<tr><td>'+d.campaign+'</td><td><span class="badge badge-info">'+akun+'</span></td><td>'+d.donasi+'</td><td>'+rupiah(d.nominal)+'</td><td>'+rupiah(d.budget)+'</td><td>'+roasMeta+'x</td><td>'+realNomDisp+'</td><td>'+roasRealDisp+'</td><td><span class="badge '+sc+'">'+sl+'</span></td></tr>';
 }).join('');
 
-const totalRow='<tr style="background:#f8fafc;font-weight:700;border-top:2px solid #1e40af"><td><strong>TOTAL / RATA-RATA</strong></td><td><strong>\u2014</strong></td><td><strong>'+totalDonasi+'</strong></td><td><strong>'+rupiah(totalNominal)+'</strong></td><td><strong>'+rupiah(totalBudget)+'</strong></td><td><strong>'+avgRoas+'x</strong></td><td><span class="badge '+statusClass+'"><strong>'+statusLabel+'</strong></span></td></tr>';
+const totalRow='<tr style="background:#f8fafc;font-weight:700;border-top:2px solid #1e40af"><td><strong>TOTAL / RATA-RATA</strong></td><td><strong>\u2014</strong></td><td><strong>'+tDonasi+'</strong></td><td><strong>'+rupiah(tNominal)+'</strong></td><td><strong>'+rupiah(tBudget)+'</strong></td><td><strong>'+avgRoasMeta+'x</strong></td><td><strong>'+rupiah(tRealNom)+' ('+tRealCount+')</strong></td><td><strong>'+avgRoasReal+'x</strong></td><td><span class="badge '+statusClass+'"><strong>'+statusLabel+'</strong></span></td></tr>';
 
 document.querySelector('#tableCampaign tbody').innerHTML=rows+totalRow;
-renderChart('chartCampaign','bar',{labels:data.map(d=>d.campaign),datasets:[{label:'Conversion Value',data:data.map(d=>d.nominal),backgroundColor:'#059669'},{label:'Budget',data:data.map(d=>d.budget),backgroundColor:'#dc2626'}]});
+renderChart('chartCampaign','bar',{labels:data.map(d=>d.campaign),datasets:[{label:'Conversion Value (Meta)',data:data.map(d=>d.nominal),backgroundColor:'#059669'},{label:'Donasi Real',data:data.map(d=>d.realNom),backgroundColor:'#3b82f6'},{label:'Budget',data:data.map(d=>d.budget),backgroundColor:'#dc2626'}]});
 }
 
 function buildProgram(){
