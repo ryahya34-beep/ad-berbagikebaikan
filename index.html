@@ -194,6 +194,8 @@ th,td{padding:8px 10px;font-size:12px}
 <div class="form-group"><label>📅 Tanggal Donasi</label><select id="colTanggal"><option>-- Upload dulu --</option></select></div>
 <div class="form-group"><label>📊 Status Donasi</label><select id="colStatus"><option>-- Upload dulu --</option></select></div>
 <div class="form-group"><label>👤 Fundraiser Name</label><select id="colFundraiser"><option>-- Upload dulu --</option></select></div>
+<div class="form-group"><label>🔗 UTM Campaign (opsional)</label><select id="colUtmCampaign"><option>-- Upload dulu --</option></select></div>
+<div class="form-group"><label>🔗 UTM Content / Ad (opsional)</label><select id="colUtmContent"><option>-- Upload dulu --</option></select></div>
 <div class="form-group"><label>📅 Tanggal Iklan (opsional)</label><select id="colTanggalIklan"><option>-- Opsional --</option></select></div>
 </div>
 <div style="margin-top:16px;display:none">
@@ -557,6 +559,8 @@ fill('colNominal',allHeadersDonasi,['amount','nominal','jumlah','total','donasi'
 fill('colTanggal',allHeadersDonasi,['date','tanggal','timestamp','waktu','tgl','created']);
 fill('colStatus',allHeadersDonasi,['status','state','kondisi','payment status']);
 fill('colFundraiser',allHeadersDonasi,['fundraiser name','fundraiser','fundraiser_name','nama fundraiser','source']);
+fill('colUtmCampaign',allHeadersDonasi,['utm campaign','utm_campaign','utmcampaign']);
+fill('colUtmContent',allHeadersDonasi,['utm content','utm_content','utmcontent']);
 const statCol=document.getElementById('colStatus').value;
 if(statCol){
 const uniqueStats=[...new Set(rawDonasi.map(r=>String(r[statCol]||'').toLowerCase().trim()).filter(s=>s))];
@@ -587,6 +591,25 @@ if(val.includes('berbagi')&&val.includes('kebaikan'))return 'Iklan';
 if(val==='drm'||(val.includes('drm')&&val.includes('baitul')))return 'WhatsApp';
 if(!val||val===''||val==='null'||val==='undefined'||val==='-'||val==='nan')return 'Organik';
 return 'Organik';
+}
+
+// Auto-detect: UTM dulu (akurat per campaign/ad), fallback fundraiser
+// Return: {channel, utmCampaign, utmContent} — utm terisi jika ada
+function identifyChannelRow(row){
+const utmCampCol=document.getElementById('colUtmCampaign')?.value;
+const utmContCol=document.getElementById('colUtmContent')?.value;
+const fundCol=document.getElementById('colFundraiser')?.value;
+const clean=v=>String(v||'').trim();
+const utmCamp=(utmCampCol&&utmCampCol!=='-- Upload dulu --')?clean(row[utmCampCol]):'';
+const utmCont=(utmContCol&&utmContCol!=='-- Upload dulu --')?clean(row[utmContCol]):'';
+// UTM terisi & bukan placeholder -> pasti Iklan
+const isPlaceholder=v=>!v||/\{\{.*\}\}/.test(v)||v.toLowerCase()==='null'||v==='-';
+if(!isPlaceholder(utmCamp)||!isPlaceholder(utmCont)){
+  return {channel:'Iklan',utmCampaign:isPlaceholder(utmCamp)?'':utmCamp,utmContent:isPlaceholder(utmCont)?'':utmCont};
+}
+// Fallback ke fundraiser
+const ch=fundCol?identifyChannel(row[fundCol]):'Organik';
+return {channel:ch,utmCampaign:'',utmContent:''};
 }
 
 function goToMapping(){
@@ -1448,7 +1471,7 @@ rawIklan=[];rawDonasi=[];matchedData=[];filesIklan=[];filesDonasi=[];allHeadersI
 serverChartData=null;
 document.getElementById('listIklan').innerHTML='';document.getElementById('listDonasi').innerHTML='';
 document.getElementById('mappingBody').innerHTML='';
-['colCampaign','colAdName','colBudget','colTanggalIklan','colProgram','colNominal','colTanggal','colStatus','colFundraiser'].forEach(id=>{document.getElementById(id).innerHTML='<option>-- Upload dulu --</option>';});
+['colCampaign','colAdName','colBudget','colTanggalIklan','colProgram','colNominal','colTanggal','colStatus','colFundraiser','colUtmCampaign','colUtmContent'].forEach(id=>{document.getElementById(id).innerHTML='<option>-- Upload dulu --</option>';});
 document.getElementById('statusTags').innerHTML='';
 document.getElementById('debugSummary').style.display='none';
 document.getElementById('channelPreview').style.display='none';
