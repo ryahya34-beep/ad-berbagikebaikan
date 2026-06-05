@@ -339,7 +339,7 @@ th,td{padding:8px 10px;font-size:12px}
 <div class="card"><div class="card-header"><div class="card-title">🎨 Semua Konten/Ad (Scrollable)</div><button class="btn btn-secondary" onclick="exportTable('tableKonten','Rekap_Konten')">📥 Export</button></div>
 <div style="font-size:12px;color:#64748b;margin-bottom:12px">Semua konten dari semua campaign — scroll ke bawah untuk lihat lebih banyak</div>
 <div class="chart-container small"><canvas id="chartKonten"></canvas></div>
-<div class="table-wrap" style="margin-top:20px"><table id="tableKonten"><thead><tr><th>Konten</th><th>Campaign</th><th>Akun Iklan</th><th>Budget</th><th>Conversion Value</th><th>ROAS</th><th>Efektivitas</th></tr></thead><tbody></tbody></table></div></div>
+<div class="table-wrap" style="margin-top:20px"><table id="tableKonten"><thead><tr><th>Konten</th><th>Campaign</th><th>Akun Iklan</th><th>Budget</th><th>Conversion Value</th><th>ROAS Meta</th><th>Donasi Real</th><th>ROAS Real</th><th>Efektivitas</th></tr></thead><tbody></tbody></table></div></div>
 </div>
 
 <div class="tab-panel" id="panel-channel">
@@ -1187,44 +1187,59 @@ const adCol=document.getElementById('colAdName').value;
 const budgetCol=document.getElementById('colBudget').value;
 const convCol=document.getElementById('colConvValue')?.value;
 
-// Agregasi per ad langsung dari file iklan Meta
-const allAds={};
-const adAkun={};
+// Agregasi per ad dari file iklan
+const allAds={},adAkun={};
 rawIklan.forEach(r=>{
 const camp=String(r[campCol]||'').trim();
 const ad=String(r[adCol]||'').trim();
 if(!ad)return;
 const key=camp+'||'+ad;
-if(!allAds[key]){
-allAds[key]={campaign:camp,ad:ad,budget:0,impressions:0,convValue:0};
-}
+if(!allAds[key])allAds[key]={campaign:camp,ad:ad,budget:0,convValue:0};
 allAds[key].budget+=parseNominal(r[budgetCol]);
-allAds[key].impressions+=parseFloat(r['Impressions']||r['impressions']||r['Imp']||0)||0;
 if(convCol&&convCol!=='-- Upload dulu --') allAds[key].convValue+=parseNominal(r[convCol]);
 if(r._akun&&!adAkun[key])adAkun[key]=r._akun;
 });
 
-const data=Object.values(allAds).sort((a,b)=>b.convValue-a.convValue);
+// Donasi real per ad dari matchedData (via utm_content -> _matchedAd), sukses only
+const lc=s=>String(s||'').trim().toLowerCase();
+const adRealNom={},adRealCount={};
+matchedData.forEach(r=>{
+if(!r._matchedAd||r._channel!=='Iklan')return;
+const st=String(r._status||'').toLowerCase().trim();
+if(!['success','paid','completed','settlement','berhasil','sukses'].includes(st))return;
+const k=lc(r._matchedAd);
+adRealNom[k]=(adRealNom[k]||0)+r._nominal;
+adRealCount[k]=(adRealCount[k]||0)+1;
+});
 
-let totalBudget=0,totalConv=0,totalImpr=0;
-data.forEach(d=>{totalBudget+=d.budget;totalConv+=d.convValue;totalImpr+=d.impressions;});
-const avgRoas=totalBudget?(totalConv/totalBudget).toFixed(2):0;
-const avgEf=avgRoas>5?'Sangat Efektif':avgRoas>3?'Efektif':avgRoas>2?'Cukup':totalConv>0?'Biasa':'Kurang';
-const efClass=avgRoas>5?'badge-success':avgRoas>3?'badge-success':avgRoas>2?'badge-warning':totalConv>0?'badge-warning':'badge-danger';
+const data=Object.values(allAds).map(d=>({
+  ...d,
+  realNom:adRealNom[lc(d.ad)]||0,
+  realCount:adRealCount[lc(d.ad)]||0
+})).sort((a,b)=>b.convValue-a.convValue);
+
+let tBudget=0,tConv=0,tRealNom=0,tRealCount=0;
+data.forEach(d=>{tBudget+=d.budget;tConv+=d.convValue;tRealNom+=d.realNom;tRealCount+=d.realCount;});
+const avgRoasMeta=tBudget?(tConv/tBudget).toFixed(2):0;
+const avgRoasReal=tBudget?(tRealNom/tBudget).toFixed(2):0;
+const avgEf=avgRoasMeta>5?'Sangat Efektif':avgRoasMeta>3?'Efektif':avgRoasMeta>2?'Cukup':tConv>0?'Biasa':'Kurang';
+const efClass=avgRoasMeta>3?'badge-success':avgRoasMeta>2?'badge-warning':tConv>0?'badge-warning':'badge-danger';
 
 const rows=data.map(d=>{
-const roas=d.budget?(d.convValue/d.budget).toFixed(2):0;
-const ef=roas>5?'Sangat Efektif':roas>3?'Efektif':roas>2?'Cukup':d.convValue>0?'Biasa':'Kurang';
-const efC=roas>5?'badge-success':roas>3?'badge-success':roas>2?'badge-warning':d.convValue>0?'badge-warning':'badge-danger';
+const roasMeta=d.budget?(d.convValue/d.budget).toFixed(2):0;
+const roasReal=d.budget?(d.realNom/d.budget).toFixed(2):0;
+const ef=roasMeta>5?'Sangat Efektif':roasMeta>3?'Efektif':roasMeta>2?'Cukup':d.convValue>0?'Biasa':'Kurang';
+const efC=roasMeta>3?'badge-success':roasMeta>2?'badge-warning':d.convValue>0?'badge-warning':'badge-danger';
 const akun=adAkun[d.campaign+'||'+d.ad]||'\u2014';
-return '<tr><td>'+d.ad+'</td><td>'+d.campaign+'</td><td><span class="badge badge-info">'+akun+'</span></td><td>'+rupiah(d.budget)+'</td><td>'+rupiah(d.convValue)+'</td><td>'+roas+'x</td><td><span class="badge '+efC+'">'+ef+'</span></td></tr>';
+const realNomDisp=d.realNom>0?rupiah(d.realNom)+' ('+d.realCount+')':'\u2014';
+const roasRealDisp=d.realNom>0?roasReal+'x':'\u2014';
+return '<tr><td>'+d.ad+'</td><td>'+d.campaign+'</td><td><span class="badge badge-info">'+akun+'</span></td><td>'+rupiah(d.budget)+'</td><td>'+rupiah(d.convValue)+'</td><td>'+roasMeta+'x</td><td>'+realNomDisp+'</td><td>'+roasRealDisp+'</td><td><span class="badge '+efC+'">'+ef+'</span></td></tr>';
 }).join('');
 
-const totalRow='<tr style="background:#f8fafc;font-weight:700;border-top:2px solid #1e40af"><td><strong>TOTAL / RATA-RATA</strong></td><td></td><td><strong>\u2014</strong></td><td><strong>'+rupiah(totalBudget)+'</strong></td><td><strong>'+rupiah(totalConv)+'</strong></td><td><strong>'+avgRoas+'x</strong></td><td><span class="badge '+efClass+'"><strong>'+avgEf+'</strong></span></td></tr>';
+const totalRow='<tr style="background:#f8fafc;font-weight:700;border-top:2px solid #1e40af"><td><strong>TOTAL / RATA-RATA</strong></td><td></td><td><strong>\u2014</strong></td><td><strong>'+rupiah(tBudget)+'</strong></td><td><strong>'+rupiah(tConv)+'</strong></td><td><strong>'+avgRoasMeta+'x</strong></td><td><strong>'+rupiah(tRealNom)+' ('+tRealCount+')</strong></td><td><strong>'+avgRoasReal+'x</strong></td><td><span class="badge '+efClass+'"><strong>'+avgEf+'</strong></span></td></tr>';
 
 document.querySelector('#tableKonten tbody').innerHTML=rows+totalRow;
-
-renderChart('chartKonten','bar',{labels:data.slice(0,10).map(d=>d.ad.substring(0,20)),datasets:[{label:'Conversion Value',data:data.slice(0,10).map(d=>d.convValue),backgroundColor:'#1e40af'},{label:'Budget',data:data.slice(0,10).map(d=>d.budget),backgroundColor:'#f59e0b'}]});
+renderChart('chartKonten','bar',{labels:data.slice(0,10).map(d=>d.ad.substring(0,20)),datasets:[{label:'Conversion Value',data:data.slice(0,10).map(d=>d.convValue),backgroundColor:'#1e40af'},{label:'Donasi Real',data:data.slice(0,10).map(d=>d.realNom),backgroundColor:'#3b82f6'},{label:'Budget',data:data.slice(0,10).map(d=>d.budget),backgroundColor:'#f59e0b'}]});
 }
 
 function buildChannel(){
