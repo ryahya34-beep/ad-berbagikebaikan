@@ -1315,16 +1315,36 @@ renderChart('chartChannel','bar',{labels:data.map(d=>d.channel),datasets:[{label
 function buildForecast(){
 // Pakai harian data — dari matchedData kalau upload, dari _harianaData kalau load server
 let daily=[];
-if(matchedData.length){
-  daily=groupBy(getIklanMatchedData(),'_tanggal',(k,v)=>({
-    tgl:k,
-    nominal:v.reduce((s,r)=>s+r._nominal,0),
-    spent:v.reduce((s,r)=>s+(r._spent||0),0)
-  })).sort((a,b)=>new Date(a.tgl)-new Date(b.tgl));
+if(rawDonasi.length){
+  // Upload langsung: donasi sukses channel Iklan by tanggal donasi + budget by tanggal iklan
+  const nomCol=document.getElementById('colNominal').value;
+  const statCol=document.getElementById('colStatus').value;
+  const fundCol=document.getElementById('colFundraiser').value;
+  const tglDonasiCol=document.getElementById('colTanggal').value;
+  const tglIklanCol=document.getElementById('colTanggalIklan').value;
+  const budgetCol=document.getElementById('colBudget').value;
+  const dmap={};
+  const ens=t=>{if(!dmap[t])dmap[t]={tgl:t,nominal:0,spent:0};return dmap[t];};
+  rawDonasi.forEach(r=>{
+    if(fundCol&&identifyChannelRow(r).channel!=='Iklan')return;
+    const st=statCol?String(r[statCol]||'').toLowerCase().trim():'success';
+    if(!['success','paid','completed','settlement','berhasil','sukses'].includes(st))return;
+    const tgl=extractDateOnly(r[tglDonasiCol]);
+    if(!tgl)return;
+    ens(tgl).nominal+=parseNominal(r[nomCol]);
+  });
+  if(tglIklanCol){
+    rawIklan.forEach(r=>{
+      const tgl=extractDateOnly(r[tglIklanCol]);
+      if(!tgl)return;
+      ens(tgl).spent+=parseNominal(r[budgetCol]);
+    });
+  }
+  daily=Object.values(dmap).sort((a,b)=>new Date(a.tgl)-new Date(b.tgl));
 } else if(window._harianaData&&window._harianaData.length){
   daily=window._harianaData.map(r=>({
     tgl:r.tgl,
-    nominal:parseNominal(r.nominal||0),
+    nominal:r.sukses_all!==undefined?parseNominal(r.sukses_all):parseNominal(r.nominal||0),
     spent:parseNominal(r.budget||0)
   })).sort((a,b)=>new Date(a.tgl)-new Date(b.tgl));
 }
