@@ -821,12 +821,9 @@ if(matchedCamp==='Unmatched'&&info.utmContent){
   const adRow=rawIklan.find(r=>lc(r[adCol2])===lc(info.utmContent));
   if(adRow){matchedAd=String(adRow[adCol2]||'').trim();matchedCamp=String(adRow[campCol2]||'').trim();}
 }
-// 3. Fallback fuzzy program (bulan lama tanpa UTM)
-if(matchedCamp==='Unmatched'&&channel==='Iklan'){
-  for(const [camp,mappedProg] of Object.entries(campaignToProgram)){
-  if(similarity(prog,mappedProg)>0.5){matchedCamp=camp;break;}
-  }
-}
+// Fuzzy fallback DIMATIKAN — ROAS Real per campaign hanya dari UTM exact match.
+// Bulan tanpa UTM: _matchedCampaign tetap Unmatched (No Data), tapi channel
+// tetap dari fundraiser sehingga KPI total akurat.
 
 if(matchedCamp!=='Unmatched')matchCount++;
 
