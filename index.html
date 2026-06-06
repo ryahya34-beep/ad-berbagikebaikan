@@ -1945,6 +1945,7 @@ document.body.appendChild(banner);
 const STORAGE_KEY='ad-berbagikebaikan-data';
 
 function saveState(){
+try{localStorage.removeItem(STORAGE_KEY);}catch(e){}
 const state={
 rawIklan:rawIklan.map(r=>{const o={...r};delete o._sourceFile;delete o._akun;return o;}),
 rawDonasi:rawDonasi.map(r=>{const o={...r};delete o._sourceFile;return o;}),
@@ -1967,7 +1968,9 @@ fundraiser:document.getElementById('colFundraiser').value
 step:document.getElementById('step-3').classList.contains('active')?3:
      document.getElementById('step-2').classList.contains('active')?2:1
 };
-try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));console.log('State saved');}catch(e){console.error('Save failed',e);}
+// localStorage dihapus — data besar disimpan ke Supabase (Simpan ke Server)
+// Auto-save browser dinonaktifkan untuk hindari QuotaExceededError
+return;
 }
 
 function loadState(){
