@@ -920,28 +920,41 @@ document.getElementById('kpiRoasTotal').textContent=roasAllIklan.toFixed(2)+'x';
 document.getElementById('kpiJumlah').textContent=(jumlahSukses+jumlahPending).toLocaleString('id-ID');
 document.getElementById('kpiAvg').textContent='Avg: '+rupiah(avgDonasi);
 
-const daily=groupBy(getIklanMatchedData(),'_tanggal',(k,v)=>({tgl:k,donasi:v.reduce((s,r)=>s+r._nominal,0),budget:0})).sort((a,b)=>new Date(a.tgl)-new Date(b.tgl));
+// Bangun trend per tanggal: Sukses Iklan, Sukses All, Budget
+const tglDonasiCol2=document.getElementById('colTanggal').value;
 const tglIklanCol=document.getElementById('colTanggalIklan').value;
+const dayMap={};
+const ensure=t=>{if(!dayMap[t])dayMap[t]={tgl:t,suksesIklan:0,suksesAll:0,budget:0};return dayMap[t];};
+
+rawDonasi.forEach(r=>{
+  const ch=fundCol?identifyChannel(r[fundCol]):'Organik';
+  if(ch==='EXCLUDE')return;
+  const st=statCol?String(r[statCol]||'').toLowerCase().trim():'success';
+  if(!['success','paid','completed','settlement','berhasil','sukses'].includes(st))return;
+  const tgl=extractDateOnly(r[tglDonasiCol2]);
+  if(!tgl)return;
+  const nom=parseNominal(r[nomCol]);
+  const d=ensure(tgl);
+  d.suksesAll+=nom;
+  if(identifyChannelRow(r).channel==='Iklan')d.suksesIklan+=nom;
+});
+
 if(tglIklanCol){
-    rawIklan.forEach(r=>{
-        const tgl=extractDateOnly(r[tglIklanCol]);
-        const day=daily.find(d=>d.tgl===tgl);
-        if(day)day.budget+=parseNominal(r[budgetCol]);
-    });
-}else{
-    const totalBudgetAll=rawIklan.reduce((s,r)=>s+parseNominal(r[budgetCol]),0);
-    const dayCount=daily.length;
-    if(dayCount>0){
-        const perDay=totalBudgetAll/dayCount;
-        daily.forEach(d=>d.budget=perDay);
-    }
+  rawIklan.forEach(r=>{
+    const tgl=extractDateOnly(r[tglIklanCol]);
+    if(!tgl)return;
+    ensure(tgl).budget+=parseNominal(r[budgetCol]);
+  });
 }
+
+const daily=Object.values(dayMap).sort((a,b)=>new Date(a.tgl)-new Date(b.tgl));
 
 renderChart('chartTrend','line',{
 labels:daily.map(d=>d.tgl),
 datasets:[
-{label:'Donasi',data:daily.map(d=>d.donasi),borderColor:'#059669',backgroundColor:'rgba(5,150,105,0.1)',fill:true,tension:0.4},
-{label:'Budget',data:daily.map(d=>d.budget),borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,0.05)',fill:true,tension:0.4}
+{label:'Sukses Iklan',data:daily.map(d=>d.suksesIklan),borderColor:'#059669',backgroundColor:'rgba(5,150,105,0.1)',fill:true,tension:0.4},
+{label:'Sukses All',data:daily.map(d=>d.suksesAll),borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.05)',fill:false,tension:0.4},
+{label:'Budget',data:daily.map(d=>d.budget),borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,0.05)',fill:false,tension:0.4}
 ]});
 
 // ── Analisa objektif dengan benchmark industri donasi ──
