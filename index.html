@@ -966,7 +966,19 @@ const roasLabel = roasSuksesIklan >= BENCH_R.roasExc ? `luar biasa ✨ (benchmar
 analisa.push(`ROAS Sukses Iklan <strong>${roasSuksesIklan.toFixed(2)}x</strong> — ${roasLabel}. ROAS All Channel: <strong>${roasAllIklan.toFixed(2)}x</strong>.`);
 
 // Program performance
-const byProg=groupBy(getIklanMatchedData(),'_program',(k,v)=>({program:k,donasi:v.reduce((s,r)=>s+r._nominal,0),budget:0,count:v.length}));
+// Donasi channel Iklan (sukses) group by program — objektif, donasi tahu program
+const _progMap={};
+rawDonasi.forEach(r=>{
+  if(fundCol&&identifyChannelRow(r).channel!=='Iklan')return;
+  const st=statCol?String(r[statCol]||'').toLowerCase().trim():'success';
+  if(!['success','paid','completed','settlement','berhasil','sukses'].includes(st))return;
+  const prog=String(r[progCol]||'').trim();
+  if(!prog)return;
+  if(!_progMap[prog])_progMap[prog]={program:prog,donasi:0,budget:0,count:0};
+  _progMap[prog].donasi+=parseNominal(r[nomCol]);
+  _progMap[prog].count++;
+});
+const byProg=Object.values(_progMap);
 byProg.forEach(p=>{
     p.budget=rawIklan.filter(r=>campaignToProgram[String(r[campCol]||'').trim()]===p.program).reduce((s,r)=>s+parseNominal(r[budgetCol]),0);
     p.roas=p.budget>0?p.donasi/p.budget:0;
@@ -1017,7 +1029,7 @@ if(jumlahPending > 0){
 }
 
 // Program recommendation
-const byProgRek=groupBy(getIklanMatchedData(),'_program',(k,v)=>({program:k,donasi:v.reduce((s,r)=>s+r._nominal,0),count:v.length}));
+const byProgRek=Object.values(_progMap).map(p=>({program:p.program,donasi:p.donasi,count:p.count}));
 if(byProgRek.length >= 2){
     const bestP = byProgRek.sort((a,b)=>b.donasi-a.donasi)[0];
     recs.push({priority:'medium', title:`🏆 Fokus ke ${bestP.program}`,
@@ -1592,7 +1604,7 @@ if(st==='success'||st==='paid'||st==='completed'||st==='settlement'||st==='berha
 else if(st==='pending'||st==='waiting'||st==='menunggu'||st==='unpaid'){pendingAll+=nom;jumlahPending++;}
 });
 
-const iklanData=getIklanMatchedData();
+const iklanData=rawDonasi.filter(r=>fundCol&&identifyChannelRow(r).channel==='Iklan').map(r=>({_nominal:parseNominal(r[nomCol]),_status:statCol?String(r[statCol]||'').toLowerCase().trim():'success'}));
 let suksesMeta=0,pendingMeta=0,totalMatchedIklan=0;
 iklanData.forEach(r=>{
 totalMatchedIklan+=r._nominal;
@@ -1708,9 +1720,18 @@ datasets:c.data.datasets.map(d=>({label:d.label,data:d.data,backgroundColor:d.ba
 const harianChart=getChartData('chartHarianVisual');
 // Juga simpan sebagai array untuk backward compat
 const harianMap={};
-getIklanMatchedData().forEach(r=>{
-if(!harianMap[r._tanggal])harianMap[r._tanggal]={tgl:r._tanggal,nominal:0,budget:0};
-harianMap[r._tanggal].nominal+=r._nominal;
+const _nc=document.getElementById('colNominal').value;
+const _sc=document.getElementById('colStatus').value;
+const _fc=document.getElementById('colFundraiser').value;
+const _tc=document.getElementById('colTanggal').value;
+rawDonasi.forEach(r=>{
+if(_fc&&identifyChannelRow(r).channel!=='Iklan')return;
+const st=_sc?String(r[_sc]||'').toLowerCase().trim():'success';
+if(!['success','paid','completed','settlement','berhasil','sukses'].includes(st))return;
+const tgl=extractDateOnly(r[_tc]);
+if(!tgl)return;
+if(!harianMap[tgl])harianMap[tgl]={tgl:tgl,nominal:0,budget:0};
+harianMap[tgl].nominal+=parseNominal(r[_nc]);
 });
 const harianArr=Object.values(harianMap).sort((a,b)=>new Date(a.tgl)-new Date(b.tgl));
 
