@@ -968,6 +968,7 @@ analisa.push(`ROAS Sukses Iklan <strong>${roasSuksesIklan.toFixed(2)}x</strong> 
 // Program performance
 // Donasi channel Iklan (sukses) group by program — objektif, donasi tahu program
 const _progMap={};
+const progCol=document.getElementById('colProgram').value;
 rawDonasi.forEach(r=>{
   if(fundCol&&identifyChannelRow(r).channel!=='Iklan')return;
   const st=statCol?String(r[statCol]||'').toLowerCase().trim():'success';
