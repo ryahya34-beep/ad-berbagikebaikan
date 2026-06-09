@@ -1722,13 +1722,26 @@ matchedData.forEach(r=>{
     realByCamp[c].pending+=r._nominal;
   }
 });
-// Tempel donasi real ke baris campaign (kalau campaign sama beda akun, masuk baris pertama)
-const seen={};
+// Hitung berapa akun per campaign (deteksi campaign sama beda akun)
+const campAccountCount={};
 Object.values(map).forEach(m=>{
   const c=lc(m.campaign);
-  if(realByCamp[c]&&!seen[c]){
+  if(!campAccountCount[c])campAccountCount[c]=new Set();
+  campAccountCount[c].add(m.account_id);
+});
+
+// Tempel donasi real. Campaign sama >1 akun = null (ambiguous, UTM tak bawa akun)
+Object.values(map).forEach(m=>{
+  const c=lc(m.campaign);
+  const multiAccount=campAccountCount[c].size>1;
+  if(multiAccount){
+    m.sukses=null;m.pending=null;m.count=null;
+    m.real_status='ambiguous_multi_account';
+  } else if(realByCamp[c]){
     m.sukses=realByCamp[c].sukses;m.pending=realByCamp[c].pending;m.count=realByCamp[c].count;
-    seen[c]=true;
+    m.real_status='ok';
+  } else {
+    m.real_status='no_utm_match';
   }
 });
 
