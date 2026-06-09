@@ -189,6 +189,8 @@ th,td{padding:8px 10px;font-size:12px}
 <div class="form-group"><label>💰 Amount Spent (Iklan)</label><select id="colBudget"><option>-- Upload dulu --</option></select></div>
 <div class="form-group"><label>🛒 Conversion Value (Iklan)</label><select id="colConvValue"><option>-- Upload dulu --</option></select></div>
 <div class="form-group"><label>🛍️ Adds to Cart / Results (Iklan)</label><select id="colResults"><option>-- Upload dulu --</option></select></div>
+<div class="form-group"><label>🏢 Account ID (Iklan, untuk MCP)</label><select id="colAccountId"><option>-- Upload dulu --</option></select></div>
+<div class="form-group"><label>🏢 Account Name (Iklan, untuk MCP)</label><select id="colAccountName"><option>-- Upload dulu --</option></select></div>
 <div class="form-group"><label>🕌 Program (Donasi)</label><select id="colProgram"><option>-- Upload dulu --</option></select></div>
 <div class="form-group"><label>💵 Nominal Donasi</label><select id="colNominal"><option>-- Upload dulu --</option></select></div>
 <div class="form-group"><label>📅 Tanggal Donasi</label><select id="colTanggal"><option>-- Upload dulu --</option></select></div>
@@ -551,6 +553,8 @@ fill('colAdName',allHeadersIklan,['ad name','adname','nama iklan','creative','ik
 fill('colBudget',allHeadersIklan,['amount spent','spent','budget','biaya','cost','amount']);
 fill('colConvValue',allHeadersIklan,['adds to cart conversion value','conversion value','purchase conversion value','website purchases conversion value','nilai konversi','conversion']);
 fill('colResults',allHeadersIklan,['adds to cart','website adds to cart','results','result','hasil','konversi']);
+fill('colAccountId',allHeadersIklan,['account id','account_id','accountid','id akun']);
+fill('colAccountName',allHeadersIklan,['account name','account_name','accountname','nama akun']);
 fill('colTanggalIklan',allHeadersIklan,['date','tanggal','timestamp','waktu','tgl','reporting starts','day','hari']);
 }
 if(rawDonasi.length){
@@ -1570,7 +1574,7 @@ rawIklan=[];rawDonasi=[];matchedData=[];filesIklan=[];filesDonasi=[];allHeadersI
 serverChartData=null;
 document.getElementById('listIklan').innerHTML='';document.getElementById('listDonasi').innerHTML='';
 document.getElementById('mappingBody').innerHTML='';
-['colCampaign','colAdName','colBudget','colTanggalIklan','colProgram','colNominal','colTanggal','colStatus','colFundraiser','colUtmCampaign','colUtmContent'].forEach(id=>{document.getElementById(id).innerHTML='<option>-- Upload dulu --</option>';});
+['colCampaign','colAdName','colBudget','colTanggalIklan','colProgram','colNominal','colTanggal','colStatus','colFundraiser','colUtmCampaign','colUtmContent','colAccountId','colAccountName'].forEach(id=>{document.getElementById(id).innerHTML='<option>-- Upload dulu --</option>';});
 document.getElementById('statusTags').innerHTML='';
 document.getElementById('debugSummary').style.display='none';
 document.getElementById('channelPreview').style.display='none';
@@ -1685,25 +1689,50 @@ chart_data:collectChartData()
 function collectCampaignData(){
 const campCol=document.getElementById('colCampaign')?.value;
 const budgetCol=document.getElementById('colBudget')?.value;
+const convCol=document.getElementById('colConvValue')?.value;
+const accIdCol=document.getElementById('colAccountId')?.value;
+const accNameCol=document.getElementById('colAccountName')?.value;
 if(!campCol||!budgetCol)return[];
-const campBudgets={};
+const lc=s=>String(s||'').trim().toLowerCase();
+const has=c=>c&&c!=='-- Upload dulu --';
+
+// Agregasi per campaign+account dari file iklan
+const map={};
 rawIklan.forEach(r=>{
-  const c=String(r[campCol]||'').trim();
-  if(c)campBudgets[c]=(campBudgets[c]||0)+parseNominal(r[budgetCol]);
+  const camp=String(r[campCol]||'').trim();
+  if(!camp)return;
+  const accId=has(accIdCol)?String(r[accIdCol]||'').trim():'';
+  const accName=has(accNameCol)?String(r[accNameCol]||'').trim():'';
+  const key=camp+'||'+accId;
+  if(!map[key])map[key]={campaign:camp,account_id:accId,account_name:accName,spend:0,conversion_value:0,sukses:0,pending:0,count:0};
+  map[key].spend+=parseNominal(r[budgetCol]);
+  if(has(convCol))map[key].conversion_value+=parseNominal(r[convCol]);
 });
-const campData={};
-getIklanMatchedData().forEach(r=>{
-  const c=r._matchedCampaign||'Unmatched';
-  if(!campData[c])campData[c]={campaign:c,spend:0,sukses:0,pending:0,count:0};
-  campData[c].spend=campBudgets[c]||0;
-  const st=r._status||'';
+
+// Donasi real (UTM-matched) per campaign — dijumlah ke key campaign (akun pertama yg cocok)
+const realByCamp={};
+matchedData.forEach(r=>{
+  if(r._matchedCampaign==='Unmatched'||r._channel!=='Iklan')return;
+  const c=lc(r._matchedCampaign);
+  if(!realByCamp[c])realByCamp[c]={sukses:0,pending:0,count:0};
+  const st=String(r._status||'').toLowerCase().trim();
   if(['success','paid','completed','settlement','berhasil','sukses'].includes(st)){
-    campData[c].sukses+=r._nominal;campData[c].count++;
+    realByCamp[c].sukses+=r._nominal;realByCamp[c].count++;
   } else if(['pending','waiting','menunggu','unpaid'].includes(st)){
-    campData[c].pending+=r._nominal;
+    realByCamp[c].pending+=r._nominal;
   }
 });
-return Object.values(campData).sort((a,b)=>b.sukses-a.sukses);
+// Tempel donasi real ke baris campaign (kalau campaign sama beda akun, masuk baris pertama)
+const seen={};
+Object.values(map).forEach(m=>{
+  const c=lc(m.campaign);
+  if(realByCamp[c]&&!seen[c]){
+    m.sukses=realByCamp[c].sukses;m.pending=realByCamp[c].pending;m.count=realByCamp[c].count;
+    seen[c]=true;
+  }
+});
+
+return Object.values(map).sort((a,b)=>b.conversion_value-a.conversion_value);
 }
 
 function collectChartData(){
