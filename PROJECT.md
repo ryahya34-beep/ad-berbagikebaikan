@@ -183,3 +183,34 @@ selectedIndex, async timing, momentum init, rebuild analisa, data-driven reko, s
 - [ ] Filter periode semua tab
 - [ ] Target tracking bulanan, perbandingan mingguan
 - [ ] Dark mode, Export PDF
+
+---
+# Version: 6.1 | Updated: 2026-06-08
+
+## Account ID/Name + kpi_campaign_data untuk MCP
+
+### Dropdown baru Step 1 (kolom IKLAN)
+- colAccountId → auto-detect "Account ID" (format angka, mis. 856184078943916)
+- colAccountName → auto-detect "Account name"
+- TIDAK ditampilkan di tab manapun — murni untuk MCP via kpi_campaign_data
+
+### Struktur kpi_campaign_data (v6.1) — sumber data MCP
+Dihasilkan collectCampaignData(). Group per campaign (gabung semua akun).
+
+Campaign unik 1 akun:
+  {campaign, spend, conversion_value, sukses, pending, count, multi_account:false, account_id, account_name}
+
+Campaign sama beda akun (multi_account):
+  {campaign, spend, conversion_value, sukses, pending, count, multi_account:true,
+   accounts:[{account_id,account_name},...], note:"Gabungan N akun - donasi real tidak bisa dipisah per akun (UTM tanpa info akun)"}
+
+### Keterbatasan akun (penting untuk MCP)
+- Meta TIDAK punya {{account.name}}/{{account.id}} di UTM (cuma 8 macro: ad/adset/campaign id+name, placement, site_source_name)
+- utm_campaign={{campaign.name}} → donasi tidak bawa info akun
+- Campaign nama SAMA di >1 akun → donasi real MUSTAHIL dipisah per akun. Di-merge + note.
+- Spend & conversion_value (sisi Meta) tetap akurat per akun (dari file iklan)
+- Solusi ke depan: nama campaign UNIK per akun → utm_campaign otomatis unik → real per akun akurat (hanya data setelah rename)
+
+## Git Workflow (aktif)
+- Kerja di branch dev → test → merge ke main saat stabil
+- git checkout main && git merge dev && git push origin main && git checkout dev
