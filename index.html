@@ -1696,20 +1696,21 @@ if(!campCol||!budgetCol)return[];
 const lc=s=>String(s||'').trim().toLowerCase();
 const has=c=>c&&c!=='-- Upload dulu --';
 
-// Agregasi per campaign+account dari file iklan
+// Agregasi per campaign (gabung semua akun), kumpulkan daftar akun
 const map={};
 rawIklan.forEach(r=>{
   const camp=String(r[campCol]||'').trim();
   if(!camp)return;
+  const c=lc(camp);
   const accId=has(accIdCol)?String(r[accIdCol]||'').trim():'';
   const accName=has(accNameCol)?String(r[accNameCol]||'').trim():'';
-  const key=camp+'||'+accId;
-  if(!map[key])map[key]={campaign:camp,account_id:accId,account_name:accName,spend:0,conversion_value:0,sukses:0,pending:0,count:0};
-  map[key].spend+=parseNominal(r[budgetCol]);
-  if(has(convCol))map[key].conversion_value+=parseNominal(r[convCol]);
+  if(!map[c])map[c]={campaign:camp,spend:0,conversion_value:0,sukses:0,pending:0,count:0,_accounts:{}};
+  map[c].spend+=parseNominal(r[budgetCol]);
+  if(has(convCol))map[c].conversion_value+=parseNominal(r[convCol]);
+  if(accId||accName)map[c]._accounts[accId]={account_id:accId,account_name:accName};
 });
 
-// Donasi real (UTM-matched) per campaign — dijumlah ke key campaign (akun pertama yg cocok)
+// Donasi real (UTM-matched) per campaign, sukses+pending
 const realByCamp={};
 matchedData.forEach(r=>{
   if(r._matchedCampaign==='Unmatched'||r._channel!=='Iklan')return;
@@ -1722,30 +1723,35 @@ matchedData.forEach(r=>{
     realByCamp[c].pending+=r._nominal;
   }
 });
-// Hitung berapa akun per campaign (deteksi campaign sama beda akun)
-const campAccountCount={};
-Object.values(map).forEach(m=>{
-  const c=lc(m.campaign);
-  if(!campAccountCount[c])campAccountCount[c]=new Set();
-  campAccountCount[c].add(m.account_id);
-});
 
-// Tempel donasi real. Campaign sama >1 akun = null (ambiguous, UTM tak bawa akun)
-Object.values(map).forEach(m=>{
+// Susun output
+const out=Object.values(map).map(m=>{
   const c=lc(m.campaign);
-  const multiAccount=campAccountCount[c].size>1;
-  if(multiAccount){
-    m.sukses=null;m.pending=null;m.count=null;
-    m.real_status='ambiguous_multi_account';
-  } else if(realByCamp[c]){
+  const accounts=Object.values(m._accounts);
+  const multi=accounts.length>1;
+  if(realByCamp[c]){
     m.sukses=realByCamp[c].sukses;m.pending=realByCamp[c].pending;m.count=realByCamp[c].count;
-    m.real_status='ok';
-  } else {
-    m.real_status='no_utm_match';
   }
-});
+  const base={
+    campaign:m.campaign,
+    spend:m.spend,
+    conversion_value:m.conversion_value,
+    sukses:m.sukses,
+    pending:m.pending,
+    count:m.count,
+    multi_account:multi
+  };
+  if(multi){
+    base.accounts=accounts;
+    base.note='Gabungan '+accounts.length+' akun - donasi real tidak bisa dipisah per akun (UTM tanpa info akun)';
+  } else if(accounts.length===1){
+    base.account_id=accounts[0].account_id;
+    base.account_name=accounts[0].account_name;
+  }
+  return base;
+}).sort((a,b)=>b.conversion_value-a.conversion_value);
 
-return Object.values(map).sort((a,b)=>b.conversion_value-a.conversion_value);
+return out;
 }
 
 function collectChartData(){
