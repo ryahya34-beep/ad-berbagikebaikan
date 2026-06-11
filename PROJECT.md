@@ -214,4 +214,68 @@ Campaign sama beda akun (multi_account):
 ## Git Workflow (aktif)
 - Kerja di branch dev → test → merge ke main saat stabil
 - git checkout main && git merge dev && git push origin main && git checkout dev
-[isi blok di atas]
+---
+# Version: 6.2 | Updated: 2026-06-10
+
+## MCP Integration — Fase 1 & 2 SELESAI
+
+### Tujuan
+Claude bisa analisa Meta Ads (spend live) + ROAS Real histori (Supabase) untuk eksekusi
+harian-mingguan. Dua connector aktif di claude.ai: Meta Ads + Supabase Ad.
+
+### Fase 1 — Meta Ads connector
+- URL: https://mcp.facebook.com/ads (custom connector, OAuth Meta)
+- Tool permissions: 18 write tools (ads_create_*, ads_update_*, ads_delete_*,
+  ads_activate_entity, ads_pixel_*_create/update/delete) -> Blocked
+- Read tools (ads_get_*, ads_insights_*) -> Always allow / Needs approval
+- CATATAN: opt-in OAuth tidak membatasi akses baca - semua ad account yang
+  bisa diakses akun FB ter-query (29 akun). Write Blocked = aman read-only.
+- Akun "Berbagi Kebaikan" (880571424752913) BELUM MCP-enabled di sisi Meta
+  (rollout bertahap) - blocker sebagian Fase 3, cek berkala.
+- 4 akun disabled "unusual activity" (BMH Pusat/Kaltim/Banten/Sulsel by Innovasia,
+  USD currency) - perlu appeal ke Facebook, terpisah dari MCP.
+
+### Fase 2 — Supabase MCP (project BARU, terpisah dari project lama!)
+PENTING: Sekarang ada DUA project Supabase:
+- LAMA (kalcerun, hharingjtlebvpbmbinf) - masih dipakai DASHBOARD ini (index.html).
+  Berisi laporan_iklan + tabel app lain (Kasirun, Kalcerun) campur jadi satu.
+- BARU (ad-berbagikebaikan, ref: gofkxydlareprrtgvouq, org ridwanbmh,
+  AWS ap-southeast-1) - khusus data iklan, dipakai MCP. Auto-expose tables
+  dimatikan saat create. Tabel laporan_iklan (22 kolom, sama persis struktur lama)
+  sudah dimigrasi: 3 baris (Januari 2026, februari 2026, mei 2026).
+
+Kenapa dipisah: project lama punya grant bawaan Supabase ke role
+anon/authenticated di SEMUA tabel (termasuk kasirun_profiles, profiles).
+Role read-only yang dibuat di project lama otomatis mewarisi akses itu -
+isolasi gagal. Project baru bersih (cuma laporan_iklan) sehingga MCP resmi
+(yang akses-nya project-wide) jadi aman dipakai.
+
+- MCP: resmi Supabase (mcp.supabase.com), URL:
+  https://mcp.supabase.com/mcp?project_ref=gofkxydlareprrtgvouq&read_only=true&features=database
+- Tool permissions: Execute SQL/List tables -> allow; write tools (Apply migration dkk) -> Blocked
+- Role ad_readonly (SELECT-only + RLS policy) dibuat & TERBUKTI via psql
+  (pooler: aws-1-ap-southeast-1.pooler.supabase.com:5432, user format
+  ad_readonly.gofkxydlareprrtgvouq - direct connection db.xxx.supabase.co
+  TIDAK resolve di jaringan lokal). Role ini cadangan, MCP pakai OAuth bukan role ini.
+
+### OPEN ITEM — SINKRONISASI BELUM SELESAI
+Dashboard ini (index.html, simpanKeServer/muatDariServer) MASIH nunjuk ke
+project Supabase LAMA (hharingjtlebvpbmbinf). Laporan baru yang di-"Simpan ke
+Server" masuk ke project LAMA, sementara MCP baca project BARU.
+
+Untuk MCP selalu lihat data terbaru, salah satu:
+(a) Pindah SUPABASE_URL/KEY di index.html ke project baru (gofkxydlareprrtgvouq)
+    dan migrasikan SEMUA laporan lama, atau
+(b) Setup sync/replikasi dari project lama ke baru, atau
+(c) Sementara: setelah simpan laporan baru di dashboard, manual re-insert
+    3 baris terbaru ke project baru (tidak scalable, hindari).
+Opsi (a) paling bersih tapi belum dikerjakan - PR terpisah, lewat branch dev.
+
+### Fase 3 — dual ROAS (siap diuji setelah open item di atas)
+Contoh prompt: "Dari laporan_iklan periode Mei (kpi_campaign_data), bandingkan
+ROAS Real per campaign dengan spend live Meta Ads - campaign mana yang
+worth scale up?"
+
+### Keamanan
+- GitHub PAT lama (vercel-push) sempat ter-expose di chat saat git remote -v
+  - sudah di-revoke + remote URL dibersihkan, pakai osxkeychain.
