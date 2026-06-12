@@ -279,3 +279,39 @@ worth scale up?"
 ### Keamanan
 - GitHub PAT lama (vercel-push) sempat ter-expose di chat saat git remote -v
   - sudah di-revoke + remote URL dibersihkan, pakai osxkeychain.
+
+---
+# Version: 6.3 | Updated: 2026-06-11
+
+## Keamanan — Project Lama Dihardening
+
+### Masalah ditemukan
+Anon key publik di index.html (repo + Vercel publik) bisa akses tabel project
+lama hharingjtlebvpbmbinf TANPA auth. Terverifikasi via curl: GET profiles,
+kasirun_profiles dll balik HTTP 200 (RLS nyala tapi grant anon/authenticated
+masih kebuka). Tabel kebetulan kosong = belum ada data bocor, tapi lubang nyata.
+
+### Tindakan (11 Juni 2026)
+- Backup full project lama: ~/backup-supabase-lama/backup_kalcerun_20260611.sql
+  (13 tabel + data, via pg_dump pooler aws-1-ap-southeast-1).
+- Revoke ALL dari anon+authenticated untuk SEMUA tabel KECUALI laporan_iklan,
+  + enable RLS, + drop policy permissif. Default privileges juga dicabut.
+- Verifikasi: profiles/kasirun_profiles/transaksi/activities/chat_messages -> 401
+  permission denied. laporan_iklan -> 200 (dashboard Muat dari Server tetap jalan).
+
+### SENGAJA DITUNDA — Step 3 (kunci write laporan_iklan)
+laporan_iklan TIDAK dikunci write-nya. Alasan: dashboard masih pakai project lama
+untuk Simpan ke Server (alur kerja inti: donasi upload -> Simpan ke Server, MCP
+cuma BACA). Kunci write sekarang = matikan Simpan ke Server tanpa pengganti.
+
+Step 3 dilakukan NANTI, digabung migrasi (lewat branch dev):
+1. Migrasi dashboard index.html -> project baru gofkxydlareprrtgvouq
+2. Pasang auth untuk write (Supabase Auth login / RLS authenticated-only)
+   -> Simpan ke Server tetap jalan TAPI butuh login, write publik tertutup
+3. Project lama: laporan_iklan boleh dikunci penuh / drop (dashboard udah pindah)
+
+### Rollback (kalau ada app non-iklan ternyata kepake)
+Tabel coaching (activities/races/training_plans/recovery_logs/coach_athletes)
+& Kasirun (produk/kategori/transaksi/detail_transaksi/kasirun_profiles) di-revoke
+dengan asumsi app mati. Kalau ternyata hidup: restore dari backup, atau
+grant select per tabel ke authenticated + bikin RLS policy proper.
