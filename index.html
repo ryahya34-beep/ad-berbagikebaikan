@@ -331,18 +331,27 @@ th,td{padding:8px 10px;font-size:12px}
 
 <div class="tab-panel" id="panel-harian">
 <div class="card"><div class="card-header"><div class="card-title">📅 Rekap Harian (Aggregate per Hari)</div><button class="btn btn-secondary" onclick="exportTable('tableHarian','Rekap_Harian')">📥 Export</button></div>
+<div style="background:#f0f9ff;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:#1e40af">
+<strong>Sumber:</strong> Donasi &amp; Nominal = transaksi channel Iklan status sukses per tanggal donasi. Budget = spend per tanggal (Meta). ROAS = Nominal/Budget, CPA = Budget/Donasi.
+</div>
 <div class="table-wrap"><table id="tableHarian"><thead><tr><th>Tanggal</th><th>Donasi</th><th>Nominal</th><th>Budget</th><th>ROAS</th><th>CPA</th><th>Status</th></tr></thead><tbody></tbody></table></div></div>
 <div class="card"><div class="card-header"><div class="card-title">📊 Visualisasi Harian</div></div><div class="chart-container"><canvas id="chartHarianVisual"></canvas></div></div>
 </div>
 
 <div class="tab-panel" id="panel-campaign">
 <div class="card"><div class="card-header"><div class="card-title">🎯 Per Campaign (Matched Only)</div><button class="btn btn-secondary" onclick="exportTable('tableCampaign','Rekap_Campaign')">📥 Export</button></div>
+<div style="background:#f0f9ff;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:#1e40af">
+<strong>Sumber:</strong> ROAS Meta = Conversion Value (klaim pixel) / Budget, dari Meta. ROAS Real = Donasi Real (UTM utm_campaign match) / Budget, dari Donasiaja. Tanpa UTM = No Data.<br><strong>Campaign lintas akun:</strong> jika 1 nama campaign jalan di &gt;1 akun iklan (mis. konv qurban sbq di 2 akun), baris digabung — Budget/Conv/Donasi = total semua akun, tapi kolom Akun Iklan hanya menampilkan 1 akun. Donasi Real tidak bisa dipisah per akun karena UTM tak membawa info akun.
+</div>
 <div class="chart-container small"><canvas id="chartCampaign"></canvas></div>
 <div class="table-wrap" style="margin-top:20px"><table id="tableCampaign"><thead><tr><th>Campaign</th><th>Akun Iklan</th><th>Adds to Cart</th><th>Conversion Value</th><th>Budget</th><th>ROAS Meta</th><th>Donasi Real</th><th>ROAS Real</th><th>Status</th></tr></thead><tbody></tbody></table></div></div>
 </div>
 
 <div class="tab-panel" id="panel-program">
 <div class="card"><div class="card-header"><div class="card-title">🕌 Semua Program (Iklan + Non-Iklan)</div><button class="btn btn-secondary" onclick="exportTable('tableProgram','Rekap_Program')">📥 Export</button></div>
+<div style="background:#f0f9ff;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:#1e40af">
+<strong>Sumber:</strong> Semua transaksi donasi per program (file Donasiaja), semua channel — bukan cuma Iklan.
+</div>
 <div style="font-size:12px;color:#64748b;margin-bottom:12px">Program yang tidak diiklanin tetap tampil (scroll ke bawah)</div>
 <div class="chart-container small"><canvas id="chartProgram"></canvas></div>
 <div class="table-wrap" style="margin-top:20px"><table id="tableProgram"><thead><tr><th>Program</th><th>Donasi</th><th>Nominal</th><th>Avg Nominal</th></tr></thead><tbody></tbody></table></div></div>
@@ -350,6 +359,9 @@ th,td{padding:8px 10px;font-size:12px}
 
 <div class="tab-panel" id="panel-konten">
 <div class="card"><div class="card-header"><div class="card-title">🎨 Semua Konten/Ad (Scrollable)</div><button class="btn btn-secondary" onclick="exportTable('tableKonten','Rekap_Konten')">📥 Export</button></div>
+<div style="background:#f0f9ff;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:#1e40af">
+<strong>Sumber:</strong> Sama seperti Campaign, tapi per ad. ROAS Real butuh UTM utm_campaign+utm_content match.
+</div>
 <div style="font-size:12px;color:#64748b;margin-bottom:12px">Semua konten dari semua campaign — scroll ke bawah untuk lihat lebih banyak</div>
 <div class="chart-container small"><canvas id="chartKonten"></canvas></div>
 <div class="table-wrap" style="margin-top:20px"><table id="tableKonten"><thead><tr><th>Konten</th><th>Campaign</th><th>Akun Iklan</th><th>Budget</th><th>Conversion Value</th><th>ROAS Meta</th><th>Donasi Real</th><th>ROAS Real</th><th>Efektivitas</th></tr></thead><tbody></tbody></table></div></div>
