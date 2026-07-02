@@ -1530,6 +1530,11 @@ el.innerHTML=insights.map(i=>'<li>'+i+'</li>').join('');
 function renderChart(id,type,data){
 const ctx=document.getElementById(id).getContext('2d');
 if(charts[id])charts[id].destroy();
+// Override warna channel (sinkron badge): Iklan biru, Organik oranye, WhatsApp hijau
+if(id==='chartChannel'&&data&&data.labels&&data.datasets&&data.datasets[0]){
+const cmap={'Iklan':'#0866ff','Organik':'#f97316','WhatsApp':'#25d366'};
+data.datasets[0].backgroundColor=data.labels.map(l=>cmap[l]||'#94a3b8');
+}
 charts[id]=new Chart(ctx,{type:type,data:data,options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:20}}},scales:type!=='doughnut'?{y:{beginAtZero:true,grid:{color:'#f1f5f9'}},x:{grid:{display:false}}}:{}}})
 }
 
@@ -2045,7 +2050,7 @@ console.log('tables found:',{th:!!th,tc:!!tc,tp:!!tp,tch:!!tch,tk:!!tk});
 if(th&&data.per_harian?.[0]?.html!==undefined)th.innerHTML=data.per_harian[0].html;
 if(tc&&data.per_campaign?.[0]?.html!==undefined)tc.innerHTML=data.per_campaign[0].html;
 if(tp&&data.per_program?.[0]?.html!==undefined)tp.innerHTML=data.per_program[0].html;
-if(tch&&data.per_channel?.[0]?.html!==undefined)tch.innerHTML=data.per_channel[0].html;
+if(tch&&data.per_channel?.[0]?.html!==undefined){let ch=data.per_channel[0].html;ch=ch.replace(/badge-info">Iklan/g,'badge-meta">Iklan').replace(/badge-warning">Organik/g,'badge-org">Organik').replace(/badge-success">WhatsApp/g,'badge-wa">WhatsApp');tch.innerHTML=ch;}
 if(tk&&data.per_konten?.[0]?.html!==undefined)tk.innerHTML=data.per_konten[0].html;
 
 // Rebuild semua chart dari chart_data yang tersimpan
