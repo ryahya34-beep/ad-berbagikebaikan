@@ -345,3 +345,28 @@ lewat project baru saja.
 Kedua project (baru & lama) sempat auto-pause karena idle >7 hari. Resume manual
 via dashboard. Kalau workflow rutin (MCP harian/mingguan), pertimbangkan upgrade
 Pro utk hilangkan auto-pause -- pause berulang ganggu continuity.
+
+---
+# Version: 6.5 | Updated: 2026-07-02
+
+## Bug: DELETE laporan gagal (403), root cause ditemukan
+
+Grant `authenticated` (insert/update/delete) di laporan_iklan project baru
+sempat hilang di tengah kerja — bukan config salah, tapi Supabase platform
+incident ("Project status change failures in multiple regions", ongoing
+sejak 30 Jun 2026) kemungkinan reset state grant. Symptom: 403 permission
+denied meski grant/RLS/token sudah diverifikasi benar berkali-kali.
+
+Fix: re-apply grant setelah incident.
+  grant insert, update, delete on table public.laporan_iklan to authenticated;
+
+Kalau muncul lagi: cek https://status.supabase.com dulu sebelum debug config.
+
+### Insiden delete: februari & maret 2026 terhapus permanen
+Terjadi saat testing delete (sengaja, sudah dikonfirmasi). jan-mei gabungan
+sempat dikira ikut terhapus tapi ternyata utuh (id 9a22aac4 tidak pernah
+kena delete). Data sekarang: april, jan-mei, januari, juni, mei — 5 baris.
+
+### Guard delete perlu login (v6.4)
+simpanKeServer & tombol hapus laporan sama-sama panggil pastikanLogin()
+sebelum write. Grant anon write sudah full di-revoke; anon SELECT-only.
