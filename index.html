@@ -8,9 +8,20 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPA_URL='https://hharingjtlebvpbmbinf.supabase.co';
-const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhoYXJpbmdqdGxlYnZwYm1iaW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5OTI2MjEsImV4cCI6MjA5MzU2ODYyMX0.u7TX7SB5CORqTl_mPC56-uTF8AOduPAo7q9_bZNKzYI';
-const supa=supabase.createClient(SUPA_URL,SUPA_KEY,{global:{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}}});
+const SUPA_URL='https://gofkxydlareprrtgvouq.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvZmt4eWRsYXJlcHJydGd2b3VxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwODA0MDcsImV4cCI6MjA5NjY1NjQwN30.JndjMIyiVCOqozwYwAqcF4UM5qTm8dP7FcV15wwdbdo';
+const supa=supabase.createClient(SUPA_URL,SUPA_KEY);
+async function pastikanLogin(){
+const{data:{session}}=await supa.auth.getSession();
+if(session)return true;
+const email=prompt('Login untuk menyimpan. Email:');
+if(!email)return false;
+const pass=prompt('Password:');
+if(!pass)return false;
+const{error}=await supa.auth.signInWithPassword({email:email.trim(),password:pass});
+if(error){alert('Login gagal: '+error.message);return false;}
+return true;
+}
 </script>
 <style>
 :root{--primary:#1e40af;--secondary:#059669;--danger:#dc2626;--warning:#d97706;--bg:#f8fafc;--card:#ffffff;--text:#1e293b;--border:#e2e8f0;}
@@ -1800,6 +1811,7 @@ chartTrend:getChartData('chartTrend')
 }
 
 async function simpanKeServer(){
+if(!await pastikanLogin()){const s=document.getElementById('serverStatus');s.textContent='❌ Batal — perlu login untuk menyimpan';s.style.color='#dc2626';return;}
 const periode=document.getElementById('periodeName').value.trim();
 if(!periode){alert('Isi nama laporan dulu (contoh: April 2026)');return;}
 if(!matchedData.length){alert('Generate dashboard dulu sebelum simpan.');return;}
