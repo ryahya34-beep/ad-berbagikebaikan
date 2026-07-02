@@ -23,12 +23,19 @@ if(error){alert('Login gagal: '+error.message);return false;}
 return true;
 }
 </script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--primary:#1e40af;--secondary:#059669;--danger:#dc2626;--warning:#d97706;--bg:#f8fafc;--card:#ffffff;--text:#1e293b;--border:#e2e8f0;}
+.ic{width:1em;height:1em;display:inline-block;vertical-align:-0.125em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.ic-lg{width:1.4em;height:1.4em}
+.lic-lg{width:1.35em;height:1.35em;vertical-align:-0.15em}
+.lic{width:1em;height:1em;vertical-align:-0.125em;stroke-width:2}
+.dot{width:0.85em;height:0.85em;display:inline-block;vertical-align:-0.05em}
+.wz-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:currentColor;color:#fff;font-size:11px;font-weight:700;margin-right:6px}.wizard-step .wz-num{background:#94a3b8}.wizard-step.active .wz-num{background:var(--primary)}.wizard-step.done .wz-num{background:var(--secondary)}
+:root{--primary:#0b5147;--primary-dark:#083b34;--secondary:#3ec68f;--accent:#ffb839;--danger:#dc2626;--warning:#d97706;--bg:#f6f8f7;--card:#ffffff;--text:#1e293b;--border:#e5eae8;}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
 .container{max-width:1400px;margin:0 auto;padding:20px}
-header{background:linear-gradient(135deg,var(--primary) 0%,#1e3a8a 100%);color:white;padding:24px;border-radius:16px;margin-bottom:24px;box-shadow:0 10px 40px rgba(30,64,175,0.2);display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+header{background:linear-gradient(135deg,var(--primary) 0%,var(--secondary) 100%);color:white;padding:24px;border-radius:20px;margin-bottom:24px;box-shadow:0 10px 40px rgba(11,81,71,0.25);display:flex;align-items:center;gap:20px;flex-wrap:wrap}
 header img{height:50px;width:auto;filter:brightness(0) invert(1)}
 header h1{font-size:26px;margin-bottom:4px}header p{opacity:0.9;font-size:14px}
 .wizard{display:flex;gap:8px;margin-bottom:24px;background:#f1f5f9;padding:8px;border-radius:12px;overflow-x:auto}
@@ -72,7 +79,7 @@ header h1{font-size:26px;margin-bottom:4px}header p{opacity:0.9;font-size:14px}
 .confidence-fill{height:100%;border-radius:3px}
 .conf-high{background:var(--secondary)}.conf-med{background:var(--warning)}.conf-low{background:var(--danger)}
 .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;border:none;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s}
-.btn-primary{background:var(--primary);color:white}.btn-primary:hover{background:#1e3a8a;transform:translateY(-1px);box-shadow:0 4px 12px rgba(30,64,175,0.3)}
+.btn-primary{background:var(--primary);color:white}.btn-primary:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:0 4px 12px rgba(11,81,71,0.3)}
 .btn-secondary{background:var(--secondary);color:white}.btn-secondary:hover{background:#047857}
 .btn-warning{background:var(--warning);color:white}
 .btn-outline{background:white;border:2px solid var(--border);color:#475569}.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
@@ -100,7 +107,7 @@ th{background:#f8fafc;padding:12px 16px;text-align:left;font-weight:600;color:#4
 td{padding:12px 16px;border-bottom:1px solid var(--border)}
 tr:hover{background:#f8fafc}
 .badge{display:inline-flex;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600}
-.badge-success{background:#dcfce7;color:#166534}.badge-warning{background:#fef3c7;color:#92400e}.badge-danger{background:#fee2e2;color:#991b1b}.badge-info{background:#dbeafe;color:#1e40af}
+.badge-success{background:#dcfce7;color:#166534}.badge-warning{background:#fef3c7;color:#92400e}.badge-danger{background:#fee2e2;color:#991b1b}.badge-info{background:#d1f0e4;color:#0b5147}
 .analysis-box{background:linear-gradient(135deg,#eff6ff 0%,#f0f9ff 100%);border-left:4px solid var(--primary);padding:20px;border-radius:12px;margin-bottom:16px}
 .analysis-box h4{color:var(--primary);margin-bottom:8px;font-size:15px}
 .analysis-box ul{margin-left:18px;font-size:14px;color:#475569}
@@ -145,6 +152,35 @@ th,td{padding:8px 10px;font-size:12px}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<g id="ic-clipboard"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></g>
+<g id="ic-calendar"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></g>
+<g id="ic-target"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></g>
+<g id="ic-building"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18M9 7h1m4 0h1M9 11h1m4 0h1M9 15h1m4 0h1M9 22v-4h6v4"/></g>
+<g id="ic-palette"><circle cx="13.5" cy="6.5" r="1.5"/><circle cx="17.5" cy="10.5" r="1.5"/><circle cx="8.5" cy="7.5" r="1.5"/><circle cx="6.5" cy="12.5" r="1.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.5-.6 1.5-1.5 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.9.7-1.5 1.5-1.5H16c3.3 0 6-2.7 6-6 0-4.4-4.5-8-10-8z"/></g>
+<g id="ic-radio"><circle cx="12" cy="12" r="2"/><path d="M4.9 19.1a10 10 0 0 1 0-14.2M7.8 16.2a6 6 0 0 1 0-8.4M16.2 7.8a6 6 0 0 1 0 8.4M19.1 4.9a10 10 0 0 1 0 14.2"/></g>
+<g id="ic-wallet"><path d="M19 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-3a2 2 0 0 1 0-4h4M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></g>
+<g id="ic-check"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></g>
+<g id="ic-clock"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></g>
+<g id="ic-bar"><path d="M12 20V10M18 20V4M6 20v-4"/></g>
+<g id="ic-trend"><path d="M22 7 13.5 15.5l-5-5L2 17"/><path d="M16 7h6v6"/></g>
+<g id="ic-bulb"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1v.2h6v-.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></g>
+<g id="ic-sparkle"><path d="M12 3v3m0 12v3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1M3 12h3m12 0h3M5.6 18.4l2.1-2.1m8.6-8.6 2.1-2.1"/></g>
+<g id="ic-rocket"><path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2 0-2.8a2 2 0 0 0-3 0zM12 15l-3-3a22 22 0 0 1 8-10c2 0 4 2 4 4a22 22 0 0 1-9 9zM9 12H4s.5-3 2-4 5 0 5 0M12 15v5s3-.5 4-2 0-5 0-5"/></g>
+<g id="ic-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></g>
+<g id="ic-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></g>
+<g id="ic-folder"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-8l-2-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"/></g>
+<g id="ic-flask"><path d="M9 3h6M10 3v6L5 19a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-10V3M7 15h10"/></g>
+<g id="ic-refresh"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/></g>
+<g id="ic-link"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></g>
+<g id="ic-cloud"><path d="M12 13v8m-4-4 4-4 4 4M20 16.6A5 5 0 0 0 18 7h-1.3A8 8 0 1 0 4 15.3"/></g>
+<g id="ic-sliders"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></g>
+<g id="ic-pin"><path d="M12 17v5M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></g>
+<g id="dot-green"><circle cx="12" cy="12" r="7" fill="#22c55e" stroke="none"/></g>
+<g id="dot-yellow"><circle cx="12" cy="12" r="7" fill="#eab308" stroke="none"/></g>
+<g id="dot-orange"><circle cx="12" cy="12" r="7" fill="#f97316" stroke="none"/></g>
+<g id="dot-red"><circle cx="12" cy="12" r="7" fill="#ef4444" stroke="none"/></g>
+</defs></svg>
 <div class="container">
 <header>
 <img src="data:image/png;base64,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" alt="BMH Logo">
@@ -158,20 +194,20 @@ th,td{padding:8px 10px;font-size:12px}
 </header>
 
 <div class="wizard" id="wizard">
-<div class="wizard-step active" id="wiz-1">1️⃣ Upload & Config</div>
-<div class="wizard-step" id="wiz-2">2️⃣ Review Mapping</div>
-<div class="wizard-step" id="wiz-3">3️⃣ Dashboard</div>
+<div class="wizard-step active" id="wiz-1"><span class="wz-num">1</span> Upload & Config</div>
+<div class="wizard-step" id="wiz-2"><span class="wz-num">2</span> Review Mapping</div>
+<div class="wizard-step" id="wiz-3"><span class="wz-num">3</span> Dashboard</div>
 </div>
 
 <div class="step-section active" id="step-1">
 <div class="upload-card">
-<h3 style="display:flex;flex-wrap:wrap;align-items:center;gap:6px">📊 Upload Data Iklan Meta <span style="font-size:12px;color:#64748b;font-weight:400">(multiple file / beda akun OK)</span></h3>
+<h3 style="display:flex;flex-wrap:wrap;align-items:center;gap:6px"><i data-lucide="bar-chart-3" class="lic lic-lg"></i> Upload Data Iklan Meta <span style="font-size:12px;color:#64748b;font-weight:400">(multiple file / beda akun OK)</span></h3>
 <div style="position:relative;margin-bottom:12px">
 <input type="file" id="inputIklan" multiple accept=".xlsx,.xls,.csv,.txt" onchange="handleFiles(this.files,'iklan')" style="position:absolute;opacity:0;width:0.1px;height:0.1px;overflow:hidden;z-index:-1">
-<label for="inputIklan" class="btn btn-outline" style="display:flex;justify-content:center;width:100%;cursor:pointer">📁 Pilih File Iklan</label>
+<label for="inputIklan" class="btn btn-outline" style="display:flex;justify-content:center;width:100%;cursor:pointer"><i data-lucide="folder" class="lic"></i> Pilih File Iklan</label>
 </div>
 <div class="dropzone" id="dropIklan" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDrop(event,'iklan')">
-<div style="font-size:28px;margin-bottom:8px">📥</div>
+<div style="margin-bottom:8px"><i data-lucide="download" class="lic lic-lg"></i></div>
 <div style="font-weight:600;font-size:14px">Atau drop file di sini</div>
 <div style="font-size:12px;color:#64748b;margin-top:4px">.xlsx / .csv / .txt</div>
 </div>
@@ -179,13 +215,13 @@ th,td{padding:8px 10px;font-size:12px}
 </div>
 
 <div class="upload-card">
-<h3>💰 Upload Data Donasi Website <span style="font-size:12px;color:#64748b;font-weight:400">(multiple file / beda web OK)</span></h3>
+<h3><i data-lucide="wallet" class="lic lic-lg"></i> Upload Data Donasi Website <span style="font-size:12px;color:#64748b;font-weight:400">(multiple file / beda web OK)</span></h3>
 <div style="position:relative;margin-bottom:12px">
 <input type="file" id="inputDonasi" multiple accept=".xlsx,.xls,.csv,.txt" onchange="handleFiles(this.files,'donasi')" style="position:absolute;opacity:0;width:0.1px;height:0.1px;overflow:hidden;z-index:-1">
-<label for="inputDonasi" class="btn btn-outline" style="display:flex;justify-content:center;width:100%;cursor:pointer">📁 Pilih File Donasi</label>
+<label for="inputDonasi" class="btn btn-outline" style="display:flex;justify-content:center;width:100%;cursor:pointer"><i data-lucide="folder" class="lic"></i> Pilih File Donasi</label>
 </div>
 <div class="dropzone" id="dropDonasi" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDrop(event,'donasi')">
-<div style="font-size:28px;margin-bottom:8px">📥</div>
+<div style="margin-bottom:8px"><i data-lucide="download" class="lic lic-lg"></i></div>
 <div style="font-weight:600;font-size:14px">Atau drop file di sini</div>
 <div style="font-size:12px;color:#64748b;margin-top:4px">.xlsx / .csv / .txt</div>
 </div>
@@ -193,31 +229,31 @@ th,td{padding:8px 10px;font-size:12px}
 </div>
 
 <div class="upload-card">
-<h3>⚙️ Konfigurasi Kolom</h3>
+<h3><i data-lucide="sliders-horizontal" class="lic"></i> Konfigurasi Kolom</h3>
 <div class="config-grid">
-<div class="form-group"><label>📌 Campaign (Iklan)</label><select id="colCampaign"><option>-- Upload dulu --</option></select></div>
-<div class="form-group"><label>🎨 Ad Name (Iklan)</label><select id="colAdName"><option>-- Upload dulu --</option></select></div>
-<div class="form-group"><label>💰 Amount Spent (Iklan)</label><select id="colBudget"><option>-- Upload dulu --</option></select></div>
+<div class="form-group"><label><i data-lucide="target" class="lic"></i> Campaign (Iklan)</label><select id="colCampaign"><option>-- Upload dulu --</option></select></div>
+<div class="form-group"><label><i data-lucide="palette" class="lic"></i> Ad Name (Iklan)</label><select id="colAdName"><option>-- Upload dulu --</option></select></div>
+<div class="form-group"><label><i data-lucide="wallet" class="lic"></i> Amount Spent (Iklan)</label><select id="colBudget"><option>-- Upload dulu --</option></select></div>
 <div class="form-group"><label>🛒 Conversion Value (Iklan)</label><select id="colConvValue"><option>-- Upload dulu --</option></select></div>
 <div class="form-group"><label>🛍️ Adds to Cart / Results (Iklan)</label><select id="colResults"><option>-- Upload dulu --</option></select></div>
 <div class="form-group"><label>🏢 Account ID (Iklan, untuk MCP)</label><select id="colAccountId"><option>-- Upload dulu --</option></select></div>
 <div class="form-group"><label>🏢 Account Name (Iklan, untuk MCP)</label><select id="colAccountName"><option>-- Upload dulu --</option></select></div>
-<div class="form-group"><label>🕌 Program (Donasi)</label><select id="colProgram"><option>-- Upload dulu --</option></select></div>
+<div class="form-group"><label><i data-lucide="building-2" class="lic"></i> Program (Donasi)</label><select id="colProgram"><option>-- Upload dulu --</option></select></div>
 <div class="form-group"><label>💵 Nominal Donasi</label><select id="colNominal"><option>-- Upload dulu --</option></select></div>
-<div class="form-group"><label>📅 Tanggal Donasi</label><select id="colTanggal"><option>-- Upload dulu --</option></select></div>
-<div class="form-group"><label>📊 Status Donasi</label><select id="colStatus"><option>-- Upload dulu --</option></select></div>
+<div class="form-group"><label><i data-lucide="calendar" class="lic"></i> Tanggal Donasi</label><select id="colTanggal"><option>-- Upload dulu --</option></select></div>
+<div class="form-group"><label><i data-lucide="bar-chart-3" class="lic"></i> Status Donasi</label><select id="colStatus"><option>-- Upload dulu --</option></select></div>
 <div class="form-group"><label>👤 Fundraiser Name</label><select id="colFundraiser"><option>-- Upload dulu --</option></select></div>
 <div class="form-group"><label>🔗 UTM Campaign (opsional)</label><select id="colUtmCampaign"><option>-- Upload dulu --</option></select></div>
 <div class="form-group"><label>🔗 UTM Content / Ad (opsional)</label><select id="colUtmContent"><option>-- Upload dulu --</option></select></div>
-<div class="form-group"><label>📅 Tanggal Iklan (opsional)</label><select id="colTanggalIklan"><option>-- Opsional --</option></select></div>
+<div class="form-group"><label><i data-lucide="calendar" class="lic"></i> Tanggal Iklan (opsional)</label><select id="colTanggalIklan"><option>-- Opsional --</option></select></div>
 </div>
 <div style="margin-top:16px;display:none">
 <div class="status-tags" id="statusTags"></div>
 </div>
 <div class="btn-group">
-<button class="btn btn-secondary" onclick="loadSample()">🧪 Load Sample</button>
-<button class="btn btn-primary" onclick="goToMapping()" id="btnMapping" disabled>🔍 Lanjut ke Mapping →</button>
-<button class="btn btn-outline" onclick="resetAll()">🔄 Reset</button>
+<button class="btn btn-secondary" onclick="loadSample()"><i data-lucide="flask-conical" class="lic"></i> Load Sample</button>
+<button class="btn btn-primary" onclick="goToMapping()" id="btnMapping" disabled><i data-lucide="search" class="lic"></i> Lanjut ke Mapping <span style="margin-left:2px">&rarr;</span></button>
+<button class="btn btn-outline" onclick="resetAll()"><i data-lucide="refresh-cw" class="lic"></i> Reset</button>
 </div>
 <div class="log-box hidden" id="logStep1"></div>
 </div>
@@ -226,7 +262,7 @@ th,td{padding:8px 10px;font-size:12px}
 <div class="step-section" id="step-2">
 <div class="upload-card">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-<h3>🔗 Review Mapping: Campaign → Program</h3>
+<h3><i data-lucide="link" class="lic lic-lg"></i> Review Mapping: Campaign &rarr; Program</h3>
 <span style="font-size:13px;color:#64748b">Ganti dropdown = Donasi & Nominal langsung update</span>
 </div>
 <div style="overflow-x:auto">
@@ -236,16 +272,16 @@ th,td{padding:8px 10px;font-size:12px}
 </table>
 </div>
 <div class="channel-preview" id="channelPreview" style="display:none">
-<h4>📡 Preview Channel (dari Fundraiser Name)</h4>
+<h4><i data-lucide="radio" class="lic"></i> Preview Channel (dari Fundraiser Name)</h4>
 <div id="channelPreviewContent"></div>
 </div>
 <div class="debug-box" id="debugSummary" style="display:none">
-<h4>📊 Preview Angka</h4>
+<h4><i data-lucide="bar-chart-3" class="lic"></i> Preview Angka</h4>
 <div id="debugContent"></div>
 </div>
 <div class="btn-group">
-<button class="btn btn-outline" onclick="backToUpload()">← Kembali</button>
-<button class="btn btn-primary" onclick="generateDashboard()">🚀 Generate Dashboard</button>
+<button class="btn btn-outline" onclick="backToUpload()"><span style="margin-right:2px">&larr;</span> Kembali</button>
+<button class="btn btn-primary" onclick="generateDashboard()"><i data-lucide="rocket" class="lic"></i> Generate Dashboard</button>
 </div>
 </div>
 </div>
@@ -257,55 +293,55 @@ th,td{padding:8px 10px;font-size:12px}
 <div class="step-section" id="step-3">
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:12px;padding:10px 14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px">
 <div style="flex:1;min-width:200px">
-<label style="font-size:12px;color:#1e40af;font-weight:600;display:block;margin-bottom:4px">📁 Nama Laporan</label>
+<label style="font-size:12px;color:#0b5147;font-weight:600;display:block;margin-bottom:4px"><i data-lucide="folder" class="lic"></i> Nama Laporan</label>
 <input id="periodeName" type="text" placeholder="contoh: April 2026" style="width:100%;padding:6px 10px;border:1px solid #93c5fd;border-radius:6px;font-size:13px"/>
 </div>
 <div style="display:flex;gap:8px;align-items:flex-end;padding-bottom:2px">
-<button onclick="simpanKeServer()" style="padding:8px 16px;background:#1e40af;color:white;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">☁️ Simpan ke Server</button>
+<button onclick="simpanKeServer()" style="padding:8px 16px;background:#0b5147;color:white;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer"><i data-lucide="cloud-upload" class="lic"></i> Simpan ke Server</button>
 <button onclick="clearState()" style="padding:8px 16px;background:#475569;color:white;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">🗂️ Ganti Data</button>
-<button onclick="muatDariServer()" style="padding:8px 16px;background:#059669;color:white;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">📥 Muat dari Server</button>
+<button onclick="muatDariServer()" style="padding:8px 16px;background:#059669;color:white;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer"><i data-lucide="download" class="lic"></i> Muat dari Server</button>
 </div>
 <div id="serverStatus" style="font-size:12px;color:#64748b;min-width:180px"></div>
 </div>
 <div class="tabs">
-<button class="tab-btn active" data-tab="ringkasan" onclick="switchTab('ringkasan')">📋 Ringkasan</button>
-<button class="tab-btn" data-tab="harian" onclick="switchTab('harian')">📅 Harian</button>
-<button class="tab-btn" data-tab="campaign" onclick="switchTab('campaign')">🎯 Campaign</button>
-<button class="tab-btn" data-tab="program" onclick="switchTab('program')">🕌 Program</button>
-<button class="tab-btn" data-tab="konten" onclick="switchTab('konten')">🎨 Konten</button>
-<button class="tab-btn" data-tab="channel" onclick="switchTab('channel')">📡 Channel</button>
+<button class="tab-btn active" data-tab="ringkasan" onclick="switchTab('ringkasan')"><i data-lucide="clipboard-list" class="lic"></i> Ringkasan</button>
+<button class="tab-btn" data-tab="harian" onclick="switchTab('harian')"><i data-lucide="calendar" class="lic"></i> Harian</button>
+<button class="tab-btn" data-tab="campaign" onclick="switchTab('campaign')"><i data-lucide="target" class="lic"></i> Campaign</button>
+<button class="tab-btn" data-tab="program" onclick="switchTab('program')"><i data-lucide="building-2" class="lic"></i> Program</button>
+<button class="tab-btn" data-tab="konten" onclick="switchTab('konten')"><i data-lucide="palette" class="lic"></i> Konten</button>
+<button class="tab-btn" data-tab="channel" onclick="switchTab('channel')"><i data-lucide="radio" class="lic"></i> Channel</button>
 </div>
 
 <div class="tab-panel active" id="panel-ringkasan">
 
 <div class="kpi-grid">
-<div class="kpi-card blue"><div class="kpi-label">💰 Spent (Rp)</div><div class="kpi-value" id="kpiSpent">Rp0</div><div class="kpi-change">Total Budget Iklan</div></div>
-<div class="kpi-card green"><div class="kpi-label">✅ Sukses All</div><div class="kpi-value" id="kpiSuksesAll">Rp0</div><div class="kpi-change">Semua Channel</div></div>
-<div class="kpi-card teal"><div class="kpi-label">⏳ Pending All</div><div class="kpi-value" id="kpiPendingAll">Rp0</div><div class="kpi-change">Semua Channel</div></div>
-<div class="kpi-card purple"><div class="kpi-label">✅ Sukses Iklan</div><div class="kpi-value" id="kpiSuksesMeta">Rp0</div><div class="kpi-change">Iklan Matched</div></div>
-<div class="kpi-card pink"><div class="kpi-label">⏳ Pending Iklan</div><div class="kpi-value" id="kpiPendingMeta">Rp0</div><div class="kpi-change">Iklan Matched</div></div>
-<div class="kpi-card orange"><div class="kpi-label">🎯 ROAS Sukses Iklan</div><div class="kpi-value" id="kpiRoasIklan">0x</div><div class="kpi-change">Sukses Iklan / Spent</div></div>
-<div class="kpi-card red"><div class="kpi-label">📊 ROAS All Iklan</div><div class="kpi-value" id="kpiRoasTotal">0x</div><div class="kpi-change">All Matched / Spent</div></div>
-<div class="kpi-card green"><div class="kpi-label">📈 Jumlah Donasi</div><div class="kpi-value" id="kpiJumlah">0</div><div class="kpi-change" id="kpiAvg">Avg: Rp0</div></div>
+<div class="kpi-card blue"><div class="kpi-label"><i data-lucide="wallet" class="lic"></i> Spent (Rp)</div><div class="kpi-value" id="kpiSpent">Rp0</div><div class="kpi-change">Total Budget Iklan</div></div>
+<div class="kpi-card green"><div class="kpi-label"><i data-lucide="check-circle-2" class="lic"></i> Sukses All</div><div class="kpi-value" id="kpiSuksesAll">Rp0</div><div class="kpi-change">Semua Channel</div></div>
+<div class="kpi-card teal"><div class="kpi-label"><i data-lucide="clock" class="lic"></i> Pending All</div><div class="kpi-value" id="kpiPendingAll">Rp0</div><div class="kpi-change">Semua Channel</div></div>
+<div class="kpi-card purple"><div class="kpi-label"><i data-lucide="check-circle-2" class="lic"></i> Sukses Iklan</div><div class="kpi-value" id="kpiSuksesMeta">Rp0</div><div class="kpi-change">Iklan Matched</div></div>
+<div class="kpi-card pink"><div class="kpi-label"><i data-lucide="clock" class="lic"></i> Pending Iklan</div><div class="kpi-value" id="kpiPendingMeta">Rp0</div><div class="kpi-change">Iklan Matched</div></div>
+<div class="kpi-card orange"><div class="kpi-label"><i data-lucide="target" class="lic"></i> ROAS Sukses Iklan</div><div class="kpi-value" id="kpiRoasIklan">0x</div><div class="kpi-change">Sukses Iklan / Spent</div></div>
+<div class="kpi-card red"><div class="kpi-label"><i data-lucide="bar-chart-3" class="lic"></i> ROAS All Iklan</div><div class="kpi-value" id="kpiRoasTotal">0x</div><div class="kpi-change">All Matched / Spent</div></div>
+<div class="kpi-card green"><div class="kpi-label"><i data-lucide="trending-up" class="lic"></i> Jumlah Donasi</div><div class="kpi-value" id="kpiJumlah">0</div><div class="kpi-change" id="kpiAvg">Avg: Rp0</div></div>
 </div>
-<div class="card"><div class="card-header"><div class="card-title">📈 Trend Donasi vs Budget</div></div><div class="chart-container"><canvas id="chartTrend"></canvas></div></div>
+<div class="card"><div class="card-header"><div class="card-title"><i data-lucide="trending-up" class="lic lic-lg"></i> Trend Donasi vs Budget</div></div><div class="chart-container"><canvas id="chartTrend"></canvas></div></div>
 <!-- ANALISA & REKOMENDASI UTAMA -->
 <div class="analysis-box"><h4>🧠 Analisa Performa</h4><ul id="analisaList"></ul></div>
-<div class="card"><div class="card-header"><div class="card-title">💡 Rekomendasi</div></div><div class="recommendation-grid" id="rekomendasiGrid"></div></div>
+<div class="card"><div class="card-header"><div class="card-title"><i data-lucide="lightbulb" class="lic lic-lg"></i> Rekomendasi</div></div><div class="recommendation-grid" id="rekomendasiGrid"></div></div>
 
 <!-- SETUP MOMENTUM -->
 <div class="card" id="momentumSetupCard" style="margin-top:8px">
 <div class="card-header">
-<div class="card-title">🎯 Setup & Analisa Momentum</div>
-<button class="btn btn-secondary" onclick="exportTable('tableMomentum','Analisa_Momentum')" style="font-size:12px">📥 Export</button>
+<div class="card-title"><i data-lucide="target" class="lic lic-lg"></i> Setup & Analisa Momentum</div>
+<button class="btn btn-secondary" onclick="exportTable('tableMomentum','Analisa_Momentum')" style="font-size:12px"><i data-lucide="download" class="lic"></i> Export</button>
 </div>
 <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px;margin-bottom:14px;font-size:12px">
-<strong style="color:#c2410c">📌 Setup Momentum:</strong> Tambahkan periode (misal Qurban, Ramadhan) lalu klik Analisa untuk melihat performa + rekomendasi campaign berbasis data aktual vs benchmark.
+<strong style="color:#c2410c"><i data-lucide="pin" class="lic"></i> Setup Momentum:</strong> Tambahkan periode (misal Qurban, Ramadhan) lalu klik Analisa untuk melihat performa + rekomendasi campaign berbasis data aktual vs benchmark.
 </div>
 <div id="momentumInputArea" style="margin-bottom:14px">
 <div id="momentumList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px"></div>
 <button class="btn btn-outline" onclick="addMomentumRow()" style="font-size:12px;padding:6px 14px">+ Tambah Momentum</button>
-<button class="btn btn-primary" onclick="buildMomentum()" style="font-size:12px;padding:6px 14px;margin-left:8px">🔍 Analisa</button>
+<button class="btn btn-primary" onclick="buildMomentum()" style="font-size:12px;padding:6px 14px;margin-left:8px"><i data-lucide="search" class="lic"></i> Analisa</button>
 </div>
 <div id="momentumResults" style="display:none">
 <div class="chart-container small" style="margin-bottom:16px"><canvas id="chartMomentum"></canvas></div>
@@ -316,30 +352,30 @@ th,td{padding:8px 10px;font-size:12px}
 </table>
 </div>
 <div class="analysis-box"><h4>🧠 Analisa Momentum</h4><ul id="momentumAnalisa"></ul></div>
-<div class="card"><div class="card-header"><div class="card-title">💡 Rekomendasi Campaign per Momentum</div></div><div class="recommendation-grid" id="momentumReko"></div></div>
+<div class="card"><div class="card-header"><div class="card-title"><i data-lucide="lightbulb" class="lic lic-lg"></i> Rekomendasi Campaign per Momentum</div></div><div class="recommendation-grid" id="momentumReko"></div></div>
 </div>
 </div>
 
 <!-- FORECAST -->
 <div class="card" style="margin-top:8px">
-<div class="card-header"><div class="card-title">🔮 Forecast Donasi (7 Hari ke Depan)</div></div>
+<div class="card-header"><div class="card-title"><i data-lucide="sparkles" class="lic lic-lg"></i> Forecast Donasi (7 Hari ke Depan)</div></div>
 <div class="chart-container"><canvas id="chartForecast"></canvas></div>
-<div class="analysis-box" style="margin-top:12px"><h4>📊 Prediksi & Insight</h4><ul id="forecastList"></ul></div>
+<div class="analysis-box" style="margin-top:12px"><h4><i data-lucide="bar-chart-3" class="lic"></i> Prediksi & Insight</h4><ul id="forecastList"></ul></div>
 </div>
 
 </div>
 
 <div class="tab-panel" id="panel-harian">
-<div class="card"><div class="card-header"><div class="card-title">📅 Rekap Harian (Aggregate per Hari)</div><button class="btn btn-secondary" onclick="exportTable('tableHarian','Rekap_Harian')">📥 Export</button></div>
+<div class="card"><div class="card-header"><div class="card-title"><i data-lucide="calendar" class="lic lic-lg"></i> Rekap Harian (Aggregate per Hari)</div><button class="btn btn-secondary" onclick="exportTable('tableHarian','Rekap_Harian')"><i data-lucide="download" class="lic"></i> Export</button></div>
 <div style="background:#f0f9ff;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:#1e40af">
 <strong>Sumber:</strong> Donasi &amp; Nominal = transaksi channel Iklan status sukses per tanggal donasi. Budget = spend per tanggal (Meta). ROAS = Nominal/Budget, CPA = Budget/Donasi.
 </div>
 <div class="table-wrap"><table id="tableHarian"><thead><tr><th>Tanggal</th><th>Donasi</th><th>Nominal</th><th>Budget</th><th>ROAS</th><th>CPA</th><th>Status</th></tr></thead><tbody></tbody></table></div></div>
-<div class="card"><div class="card-header"><div class="card-title">📊 Visualisasi Harian</div></div><div class="chart-container"><canvas id="chartHarianVisual"></canvas></div></div>
+<div class="card"><div class="card-header"><div class="card-title"><i data-lucide="bar-chart-3" class="lic lic-lg"></i> Visualisasi Harian</div></div><div class="chart-container"><canvas id="chartHarianVisual"></canvas></div></div>
 </div>
 
 <div class="tab-panel" id="panel-campaign">
-<div class="card"><div class="card-header"><div class="card-title">🎯 Per Campaign (Matched Only)</div><button class="btn btn-secondary" onclick="exportTable('tableCampaign','Rekap_Campaign')">📥 Export</button></div>
+<div class="card"><div class="card-header"><div class="card-title"><i data-lucide="target" class="lic lic-lg"></i> Per Campaign (Matched Only)</div><button class="btn btn-secondary" onclick="exportTable('tableCampaign','Rekap_Campaign')"><i data-lucide="download" class="lic"></i> Export</button></div>
 <div style="background:#f0f9ff;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:#1e40af">
 <strong>Sumber:</strong> ROAS Meta = Conversion Value (klaim pixel) / Budget, dari Meta. ROAS Real = Donasi Real (UTM utm_campaign match) / Budget, dari Donasiaja. Tanpa UTM = No Data.<br><strong>Campaign lintas akun:</strong> jika 1 nama campaign jalan di &gt;1 akun iklan (mis. konv qurban sbq di 2 akun), baris digabung — Budget/Conv/Donasi = total semua akun, tapi kolom Akun Iklan hanya menampilkan 1 akun. Donasi Real tidak bisa dipisah per akun karena UTM tak membawa info akun.
 </div>
@@ -348,7 +384,7 @@ th,td{padding:8px 10px;font-size:12px}
 </div>
 
 <div class="tab-panel" id="panel-program">
-<div class="card"><div class="card-header"><div class="card-title">🕌 Semua Program (Iklan + Non-Iklan)</div><button class="btn btn-secondary" onclick="exportTable('tableProgram','Rekap_Program')">📥 Export</button></div>
+<div class="card"><div class="card-header"><div class="card-title"><i data-lucide="building-2" class="lic lic-lg"></i> Semua Program (Iklan + Non-Iklan)</div><button class="btn btn-secondary" onclick="exportTable('tableProgram','Rekap_Program')"><i data-lucide="download" class="lic"></i> Export</button></div>
 <div style="background:#f0f9ff;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:#1e40af">
 <strong>Sumber:</strong> Semua transaksi donasi per program (file Donasiaja), semua channel — bukan cuma Iklan.
 </div>
@@ -358,7 +394,7 @@ th,td{padding:8px 10px;font-size:12px}
 </div>
 
 <div class="tab-panel" id="panel-konten">
-<div class="card"><div class="card-header"><div class="card-title">🎨 Semua Konten/Ad (Scrollable)</div><button class="btn btn-secondary" onclick="exportTable('tableKonten','Rekap_Konten')">📥 Export</button></div>
+<div class="card"><div class="card-header"><div class="card-title"><i data-lucide="palette" class="lic lic-lg"></i> Semua Konten/Ad (Scrollable)</div><button class="btn btn-secondary" onclick="exportTable('tableKonten','Rekap_Konten')"><i data-lucide="download" class="lic"></i> Export</button></div>
 <div style="background:#f0f9ff;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:#1e40af">
 <strong>Sumber:</strong> Sama seperti Campaign, tapi per ad. ROAS Real butuh UTM utm_campaign+utm_content match.
 </div>
@@ -368,7 +404,7 @@ th,td{padding:8px 10px;font-size:12px}
 </div>
 
 <div class="tab-panel" id="panel-channel">
-<div class="card"><div class="card-header"><div class="card-title">📡 Per Channel (Fundraiser Name)</div><button class="btn btn-secondary" onclick="exportTable('tableChannel','Rekap_Channel')">📥 Export</button></div>
+<div class="card"><div class="card-header"><div class="card-title"><i data-lucide="radio" class="lic lic-lg"></i> Per Channel (Fundraiser Name)</div><button class="btn btn-secondary" onclick="exportTable('tableChannel','Rekap_Channel')"><i data-lucide="download" class="lic"></i> Export</button></div>
 <div style="background:#f0f9ff;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:#1e40af">
 <strong>Aturan:</strong> "berbagi kebaikan" = Iklan | "drm"/"drm baitul maal hidayatullah" = WhatsApp | Blank = Organik | "Baitul Maal Hidayatullah" exact = Exclude
 </div>
@@ -987,9 +1023,9 @@ const analisa=[];
 
 // ROAS assessment vs benchmark
 const roasLabel = roasSuksesIklan >= BENCH_R.roasExc ? `luar biasa ✨ (benchmark >${BENCH_R.roasExc}x)` :
-                  roasSuksesIklan >= BENCH_R.roasGood ? `sangat baik 🟢 (benchmark >${BENCH_R.roasGood}x)` :
-                  roasSuksesIklan >= BENCH_R.roasOk ? `cukup 🟡 (benchmark ${BENCH_R.roasOk}x)` :
-                  roasSuksesIklan >= BENCH_R.roasMin ? `di bawah ideal 🟠 (min ${BENCH_R.roasMin}x)` : 'merugi 🔴';
+                  roasSuksesIklan >= BENCH_R.roasGood ? `sangat baik <svg class="dot"><use href="#dot-green"/></svg> (benchmark >${BENCH_R.roasGood}x)` :
+                  roasSuksesIklan >= BENCH_R.roasOk ? `cukup <svg class="dot"><use href="#dot-yellow"/></svg> (benchmark ${BENCH_R.roasOk}x)` :
+                  roasSuksesIklan >= BENCH_R.roasMin ? `di bawah ideal <svg class="dot"><use href="#dot-orange"/></svg> (min ${BENCH_R.roasMin}x)` : 'merugi <svg class="dot"><use href="#dot-red"/></svg>';
 analisa.push(`ROAS Sukses Iklan <strong>${roasSuksesIklan.toFixed(2)}x</strong> — ${roasLabel}. ROAS All Channel: <strong>${roasAllIklan.toFixed(2)}x</strong>.`);
 
 // Program performance
@@ -1040,13 +1076,13 @@ const recs=[];
 
 // ROAS-based primary recommendation
 if(roasSuksesIklan >= BENCH_RK.roasGood){
-    recs.push({priority:'high', title:'🚀 Scale Budget',
+    recs.push({priority:'high', title:'<i data-lucide="rocket" class="lic"></i> Scale Budget',
         text:`ROAS ${roasSuksesIklan.toFixed(2)}x di atas benchmark ${BENCH_RK.roasGood}x. Naikkan budget 20-30% bertahap (maksimal 2x lipat per minggu). Monitor ROAS setelah 3 hari — kalau tetap >${BENCH_RK.roasGood}x, lanjutkan scale.`});
 } else if(roasSuksesIklan >= BENCH_RK.roasOk){
     recs.push({priority:'medium', title:'🔧 Optimasi untuk Scale',
         text:`ROAS ${roasSuksesIklan.toFixed(2)}x — mendekati threshold scale (${BENCH_RK.roasGood}x). Fokus: A/B test creative (minimal 3 variasi), perluas lookalike audience, tambah retargeting. Target ROAS ${BENCH_RK.roasGood}x sebelum tambah budget.`});
 } else if(roasSuksesIklan > 0){
-    recs.push({priority:'high', title:'🔴 Perbaiki Performa Dulu',
+    recs.push({priority:'high', title:'<svg class="dot"><use href="#dot-red"/></svg> Perbaiki Performa Dulu',
         text:`ROAS ${roasSuksesIklan.toFixed(2)}x di bawah minimum viable (${BENCH_RK.roasMin}x). Jangan naikkan budget. Langkah: (1) Pause ad set dengan ROAS < 1x, (2) Duplicate winning creative ke audience baru, (3) Review funnel donasi — cek drop-off di halaman donasi.`});
 }
 
@@ -1457,27 +1493,27 @@ const BENCHMARK={
 const insights=[];
 
 // Trend insight
-if(trendPct>15) insights.push(`📈 Donasi naik <strong>${trendPct.toFixed(0)}%</strong> dibanding 7 hari pertama — momentum positif, pertahankan atau scale budget.`);
-else if(trendPct<-15) insights.push(`📉 Donasi turun <strong>${Math.abs(trendPct).toFixed(0)}%</strong> dibanding awal periode — evaluasi creative dan audience segera.`);
-else insights.push(`➡️ Tren donasi relatif stabil (${trendPct>0?'+':''}${trendPct.toFixed(0)}%) — optimasi bertahap.`);
+if(trendPct>15) insights.push(`<i data-lucide="trending-up" class="lic"></i> Donasi naik <strong>${trendPct.toFixed(0)}%</strong> dibanding 7 hari pertama — momentum positif, pertahankan atau scale budget.`);
+else if(trendPct<-15) insights.push(`<i data-lucide="trending-up" class="lic"></i> Donasi turun <strong>${Math.abs(trendPct).toFixed(0)}%</strong> dibanding awal periode — evaluasi creative dan audience segera.`);
+else insights.push(`<i data-lucide="trending-up" class="lic"></i> Tren donasi relatif stabil (${trendPct>0?'+':''}${trendPct.toFixed(0)}%) — optimasi bertahap.`);
 
 // ROAS vs benchmark
 if(roasTotal>0){
-  if(roasTotal>=BENCHMARK.roasGood) insights.push(`🟢 ROAS ${roasTotal.toFixed(2)}x — <strong>di atas benchmark ${BENCHMARK.roasGood}x</strong>, layak scale budget 20-30%.`);
-  else if(roasTotal>=BENCHMARK.roasOk) insights.push(`🟡 ROAS ${roasTotal.toFixed(2)}x — <strong>cukup (benchmark ${BENCHMARK.roasOk}x)</strong>, ada ruang optimasi.`);
-  else if(roasTotal>=BENCHMARK.roasMin) insights.push(`🟠 ROAS ${roasTotal.toFixed(2)}x — <strong>di bawah benchmark ideal ${BENCHMARK.roasOk}x</strong>, review targeting & creative.`);
-  else insights.push(`🔴 ROAS ${roasTotal.toFixed(2)}x — <strong>di bawah minimum ${BENCHMARK.roasMin}x</strong>, pertimbangkan pause dan rebuild campaign.`);
+  if(roasTotal>=BENCHMARK.roasGood) insights.push(`<svg class="dot"><use href="#dot-green"/></svg> ROAS ${roasTotal.toFixed(2)}x — <strong>di atas benchmark ${BENCHMARK.roasGood}x</strong>, layak scale budget 20-30%.`);
+  else if(roasTotal>=BENCHMARK.roasOk) insights.push(`<svg class="dot"><use href="#dot-yellow"/></svg> ROAS ${roasTotal.toFixed(2)}x — <strong>cukup (benchmark ${BENCHMARK.roasOk}x)</strong>, ada ruang optimasi.`);
+  else if(roasTotal>=BENCHMARK.roasMin) insights.push(`<svg class="dot"><use href="#dot-orange"/></svg> ROAS ${roasTotal.toFixed(2)}x — <strong>di bawah benchmark ideal ${BENCHMARK.roasOk}x</strong>, review targeting & creative.`);
+  else insights.push(`<svg class="dot"><use href="#dot-red"/></svg> ROAS ${roasTotal.toFixed(2)}x — <strong>di bawah minimum ${BENCHMARK.roasMin}x</strong>, pertimbangkan pause dan rebuild campaign.`);
 }
 
 // Forecast insight
 const forecastVsActual=avgLast7>0?((forecastTotal/7-avgLast7)/avgLast7*100):0;
-insights.push(`🔮 Prediksi 7 hari ke depan: <strong>${rupiah(forecastTotal)}</strong> total (${rupiah(Math.round(forecastTotal/7))}/hari) — ${forecastVsActual>0?'+':''}${forecastVsActual.toFixed(0)}% vs rata-rata 7 hari terakhir.`);
+insights.push(`<i data-lucide="sparkles" class="lic"></i> Prediksi 7 hari ke depan: <strong>${rupiah(forecastTotal)}</strong> total (${rupiah(Math.round(forecastTotal/7))}/hari) — ${forecastVsActual>0?'+':''}${forecastVsActual.toFixed(0)}% vs rata-rata 7 hari terakhir.`);
 
 // Momentum aktif
 if(activeMomentum.length){
-  insights.push(`🎯 Momentum aktif saat ini: <strong>${activeMomentum.join(', ')}</strong> — manfaatkan untuk tingkatkan donasi dengan campaign khusus.`);
+  insights.push(`<i data-lucide="target" class="lic"></i> Momentum aktif saat ini: <strong>${activeMomentum.join(', ')}</strong> — manfaatkan untuk tingkatkan donasi dengan campaign khusus.`);
 } else {
-  insights.push(`💡 Tidak ada momentum khusus aktif saat ini. Pertimbangkan campaign program rutin atau awareness untuk jaga baseline donasi.`);
+  insights.push(`<i data-lucide="lightbulb" class="lic"></i> Tidak ada momentum khusus aktif saat ini. Pertimbangkan campaign program rutin atau awareness untuk jaga baseline donasi.`);
 }
 
 // Volatilitas
@@ -1485,7 +1521,7 @@ const vals=ma.map(d=>d.actual);
 const mean=vals.reduce((s,v)=>s+v,0)/vals.length;
 const std=Math.sqrt(vals.reduce((s,v)=>s+(v-mean)**2,0)/vals.length);
 const cv=mean>0?std/mean:0;
-if(cv>0.5) insights.push(`⚠️ Donasi harian sangat fluktuatif (CV ${(cv*100).toFixed(0)}%) — pertimbangkan jadwal iklan lebih konsisten.`);
+if(cv>0.5) insights.push(`<i data-lucide="clock" class="lic"></i> Donasi harian sangat fluktuatif (CV ${(cv*100).toFixed(0)}%) — pertimbangkan jadwal iklan lebih konsisten.`);
 
 el.innerHTML=insights.map(i=>'<li>'+i+'</li>').join('');
 }
@@ -2271,7 +2307,7 @@ function buildMomentum(){
     inputArea.parentNode.insertBefore(hintEl, inputArea);
   }
   if(useMatchedFallback){
-    hintEl.innerHTML = '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#1e40af">💡 <strong>Data dari server (1 bulan).</strong> Untuk momentum lintas bulan yang akurat, upload file iklan + donasi multi-bulan langsung.</div>';
+    hintEl.innerHTML = '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#1e40af"><i data-lucide="lightbulb" class="lic"></i> <strong>Data dari server (1 bulan).</strong> Untuk momentum lintas bulan yang akurat, upload file iklan + donasi multi-bulan langsung.</div>';
   } else {
     hintEl.innerHTML = '';
   }
@@ -2395,7 +2431,7 @@ function buildMomentum(){
   });
 
   // Render table
-  function getRating(roas){ return roas>=5?'🟢 Juara':roas>=3?'🟡 Oke':roas>0?'🟠 Biasa':'🔴 Review'; }
+  function getRating(roas){ return roas>=5?'<svg class="dot"><use href="#dot-green"/></svg> Juara':roas>=3?'<svg class="dot"><use href="#dot-yellow"/></svg> Oke':roas>0?'<svg class="dot"><use href="#dot-orange"/></svg> Biasa':'<svg class="dot"><use href="#dot-red"/></svg> Review'; }
   function getBadge(roas){ return roas>=5?'badge-success':roas>=3?'badge-warning':roas>0?'badge-warning':'badge-danger'; }
 
   document.querySelector('#tableMomentum tbody').innerHTML = results.map(r =>
@@ -2441,9 +2477,9 @@ function buildMomentum(){
 
   // Worst momentum (hanya tampil kalau ada lebih dari 1 momentum)
   if(multiMomentum && worst && worst.name !== best?.name && worst.spend > 0){
-    if(worst.roas === 0) analisa.push(`🔴 <strong>${worst.name}</strong> tidak menghasilkan donasi sama sekali — hentikan dan audit ulang creative + audience sebelum momentum berikutnya.`);
-    else if(worst.roas < BENCH.roasMin) analisa.push(`🔴 <strong>${worst.name}</strong> ROAS ${worst.roas.toFixed(2)}x — di bawah minimum viable ${BENCH.roasMin}x. Review targeting & creative.`);
-    else analisa.push(`🟡 Momentum terendah: <strong>${worst.name}</strong> ROAS ${worst.roas.toFixed(2)}x — masih ada ruang optimasi.`);
+    if(worst.roas === 0) analisa.push(`<svg class="dot"><use href="#dot-red"/></svg> <strong>${worst.name}</strong> tidak menghasilkan donasi sama sekali — hentikan dan audit ulang creative + audience sebelum momentum berikutnya.`);
+    else if(worst.roas < BENCH.roasMin) analisa.push(`<svg class="dot"><use href="#dot-red"/></svg> <strong>${worst.name}</strong> ROAS ${worst.roas.toFixed(2)}x — di bawah minimum viable ${BENCH.roasMin}x. Review targeting & creative.`);
+    else analisa.push(`<svg class="dot"><use href="#dot-yellow"/></svg> Momentum terendah: <strong>${worst.name}</strong> ROAS ${worst.roas.toFixed(2)}x — masih ada ruang optimasi.`);
   }
 
   // Tren ROAS antar momentum
@@ -2451,8 +2487,8 @@ function buildMomentum(){
   if(multiMomentum && byDate.length >= 2){
     const first = byDate[0], last = byDate[byDate.length-1];
     const trendPct = first.roas > 0 ? ((last.roas - first.roas)/first.roas*100) : 0;
-    const trendLabel = trendPct > 10 ? `naik ${trendPct.toFixed(0)}% 📈` : trendPct < -10 ? `turun ${Math.abs(trendPct).toFixed(0)}% 📉` : 'stabil ➡️';
-    analisa.push(`📊 Tren ROAS: <strong>${trendLabel}</strong> dari ${first.name} (${first.roas.toFixed(2)}x) ke ${last.name} (${last.roas.toFixed(2)}x).`);
+    const trendLabel = trendPct > 10 ? `naik ${trendPct.toFixed(0)}% <i data-lucide="trending-up" class="lic"></i>` : trendPct < -10 ? `turun ${Math.abs(trendPct).toFixed(0)}% <i data-lucide="trending-up" class="lic"></i>` : 'stabil';
+    analisa.push(`<i data-lucide="bar-chart-3" class="lic"></i> Tren ROAS: <strong>${trendLabel}</strong> dari ${first.name} (${first.roas.toFixed(2)}x) ke ${last.name} (${last.roas.toFixed(2)}x).`);
   }
 
   // Efisiensi spend per hari
@@ -2476,7 +2512,7 @@ function buildMomentum(){
   // Scale winner
   if(best && best.roas >= BENCH.roasGood){
     const budgetScale = best.roas >= BENCH.roasExc ? '50-70%' : '20-40%';
-    reko.push({priority:'high', title:`🚀 Scale Budget ${best.name}`,
+    reko.push({priority:'high', title:`<i data-lucide="rocket" class="lic"></i> Scale Budget ${best.name}`,
       text:`ROAS ${best.roas.toFixed(2)}x jauh di atas benchmark ${BENCH.roasGood}x. Naikkan budget ${budgetScale} untuk momentum serupa berikutnya. Mulai iklan 14 hari sebelum puncak momentum. Current avg spend: ${rupiah(best.spendPerHari)}/hari → target: ${rupiah(Math.round(best.spendPerHari * (best.roas>=BENCH.roasExc?1.6:1.3)))}/hari.`});
   }
 
@@ -2596,5 +2632,7 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(makeSortable,500));
 
 </script>
 
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>lucide.createIcons();</script>
 </body>
 </html>
