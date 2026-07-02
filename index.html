@@ -1916,6 +1916,7 @@ const id=el.dataset.deleteId;
 const periode=el.dataset.deletePeriode;
 if(!confirm(`Hapus laporan "${periode}"?`))return;
 el.textContent='⏳';el.disabled=true;
+if(!await pastikanLogin()){alert('Perlu login untuk menghapus');el.textContent='🗑️';el.disabled=false;return;}
 const{error}=await supa.from('laporan_iklan').delete().eq('id',id);
 if(error){alert('Gagal hapus: '+error.message);el.textContent='🗑️';el.disabled=false;}
 else{el.closest('div[style]').remove();}
