@@ -370,3 +370,20 @@ kena delete). Data sekarang: april, jan-mei, januari, juni, mei — 5 baris.
 ### Guard delete perlu login (v6.4)
 simpanKeServer & tombol hapus laporan sama-sama panggil pastikanLogin()
 sebelum write. Grant anon write sudah full di-revoke; anon SELECT-only.
+
+---
+# Version: 6.6 | Updated: 2026-07-02
+
+## Poles UI (v6.6)
+- Warna brand BMH: primary #0b5147 (hijau tua), secondary #3ec68f (hijau terang),
+  accent #ffb839 (oranye) — dari logo. CSS token :root, header gradient hijau.
+- Font: Inter (Google Fonts CDN).
+- Ikon: Lucide (CDN unpkg, lucide.createIcons()). Emoji statis + narasi diganti
+  <i data-lucide>. Dot status (hijau/kuning/merah) tetap SVG inline (Lucide tak
+  punya dot berwarna). ✅/☁️ di status.textContent tetap emoji (textContent tak
+  render HTML/SVG).
+- Sprite <defs> ic lama masih ada (unused, tidak dihapus — tidak mengganggu).
+- Markup & logic JS analitik tidak diubah; murni presentational.
+
+Ketergantungan CDN baru: fonts.googleapis.com, unpkg.com (Lucide). Kalau salah
+satu keblokir jaringan, font/ikon fallback ke system/kosong.
