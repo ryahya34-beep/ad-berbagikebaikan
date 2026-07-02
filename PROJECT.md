@@ -315,3 +315,33 @@ Tabel coaching (activities/races/training_plans/recovery_logs/coach_athletes)
 & Kasirun (produk/kategori/transaksi/detail_transaksi/kasirun_profiles) di-revoke
 dengan asumsi app mati. Kalau ternyata hidup: restore dari backup, atau
 grant select per tabel ke authenticated + bikin RLS policy proper.
+
+---
+# Version: 6.4 | Updated: 2026-07-02
+
+## Migrasi Dashboard SELESAI
+
+Dashboard (index.html) pindah dari project lama (hharingjtlebvpbmbinf) ke baru
+(gofkxydlareprrtgvouq). SUPA_URL/SUPA_KEY diganti, global headers dibuang biar
+token login (Auth) tidak ketimpa anon key.
+
+### Auth untuk Simpan ke Server
+- Fungsi pastikanLogin() dicek di awal simpanKeServer().
+- 1 user: ridwanyahya@bmh.or.id (Supabase Auth, email+password, Auto Confirm).
+- Site URL diset ke https://ad-berbagikebaikan.vercel.app (sebelumnya localhost:3000,
+  bikin link reset password salah arah).
+- Muat dari Server tetap anon, tanpa login.
+
+### Step 3 project lama — TUNTAS
+laporan_iklan di project lama sekarang locked write (anon/authenticated hanya SELECT).
+Root cause awal gagal lock: policy lama "Public insert/update/delete/read" (role
+{public}) masih override revoke grant anon/authenticated. Di-drop, diganti policy
+select-only. Diverifikasi: POST anon -> 401 RLS violation.
+
+Project lama sekarang pure archive/read-only utk laporan_iklan. Semua tulis baru
+lewat project baru saja.
+
+### Auto-pause free tier (kedua project)
+Kedua project (baru & lama) sempat auto-pause karena idle >7 hari. Resume manual
+via dashboard. Kalau workflow rutin (MCP harian/mingguan), pertimbangkan upgrade
+Pro utk hilangkan auto-pause -- pause berulang ganggu continuity.
