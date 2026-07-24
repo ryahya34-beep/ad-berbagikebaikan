@@ -387,3 +387,47 @@ sebelum write. Grant anon write sudah full di-revoke; anon SELECT-only.
 
 Ketergantungan CDN baru: fonts.googleapis.com, unpkg.com (Lucide). Kalau salah
 satu keblokir jaringan, font/ikon fallback ke system/kosong.
+
+---
+# Version: 6.7 | Updated: 2026-07-24
+
+## Insiden ke-3 auto-pause + pencegah tidur (Vercel Cron)
+
+### Gejala
+Tombol melayang "📥 Ada laporan tersimpan" di kanan bawah hilang. Bukan bug UI:
+tombol itu dibuat runtime hanya kalau query `laporan_iklan` sukses (index.html
+~2094). Query gagal -> `catch(e){}` KOSONG -> tombol tidak dibuat, tanpa pesan.
+
+### Root cause (terverifikasi)
+Project Supabase gofkxydlareprrtgvouq auto-pause (free tier, idle >7 hari).
+Bukti: `gofkxydlareprrtgvouq.supabase.co` NXDOMAIN dari DNS lokal DAN 8.8.8.8,
+sementara vercel app + CDN lain balas 200. Setelah resume manual: 521 -> 404 ->
+503 -> 200 (butuh ~1 menit). Data utuh, 7 baris (jan, feb, mar, apr, mei, jun,
+semester1 2026 — feb & mar yang dulu terhapus sudah ada lagi).
+
+Ini kejadian ke-3. Pola: DNS hilang total = paused, bukan salah config/RLS.
+Cek DNS DULU sebelum debug apa pun.
+
+### Pencegah tidur: Vercel Cron
+- `api/ping.js` — SELECT baca-saja 1 baris ke laporan_iklan. Baca kredensial
+  dari env (`SUPABASE_URL`, `SUPABASE_ANON_KEY`), TIDAK hardcode (clone-ready).
+  Opsional `CRON_SECRET`: kalau diset, endpoint tolak pemanggil tanpa
+  `Authorization: Bearer <secret>`; kalau tidak diset, tetap jalan.
+- `vercel.json` — cron `0 3 * * *` (10:00 WIB).
+
+Kenapa Vercel Cron, bukan GitHub Actions: GitHub auto-disable scheduled workflow
+kalau repo tidak ada commit 60 hari. Repo ini jarang disentuh -> pencegah tidurnya
+ikut mati diam-diam. Vercel tidak punya aturan itu, dan akunnya sudah ada.
+
+Batas Hobby (dari docs resmi): cron max 1x/hari, presisi ±59 menit. Cukup —
+ambang pause Supabase 7 hari.
+
+### Belum tuntas
+- `catch(e){}` kosong di index.html ~2107 masih menelan error diam-diam. Kalau
+  server mati lagi, user tetap tidak dapat pesan apa pun. PEMICU: kerjakan
+  bareng poles UI berikutnya, atau langsung kalau auto-pause kejadian lagi.
+- Ping mengurangi risiko pause, TIDAK menjaminnya. Docs Supabase: hanya Pro yang
+  dijamin tidak dipause ("We may pause applications on the Free Plan that
+  exhibit low activity in a 7-day period"). Tidak ada larangan keep-alive.
+  PEMICU upgrade Pro: kalau pause tetap kejadian meski cron jalan, atau saat
+  handover ke klien berbayar.
