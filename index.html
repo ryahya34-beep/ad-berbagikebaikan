@@ -405,7 +405,7 @@ let includeStatuses=new Set(['success','paid','completed','settlement','berhasil
 let validDonasiCache=[];
 let serverChartData=null; // chart data loaded from server for atasan
 
-const rupiah=n=>'Rp'+(n||0).toLocaleString('id-ID');
+const rupiah=n=>'Rp'+Math.round(n||0).toLocaleString('id-ID');
 const pct=n=>(n||0).toFixed(1)+'%';
 
 function log(id,txt){
@@ -1960,18 +1960,30 @@ document.getElementById('periodeName').value=data.periode;
 
 const kpi=data.per_kpi||{};
 
-// Inject KPI values
-if(kpi.kpiSpent)document.getElementById('kpiSpent').textContent=kpi.kpiSpent;
-if(kpi.kpiSuksesAll)document.getElementById('kpiSuksesAll').textContent=kpi.kpiSuksesAll;
-if(kpi.kpiPendingAll)document.getElementById('kpiPendingAll').textContent=kpi.kpiPendingAll;
-if(kpi.kpiSuksesMeta)document.getElementById('kpiSuksesMeta').textContent=kpi.kpiSuksesMeta;
-if(kpi.kpiSuksesNonIklan)document.getElementById('kpiSuksesNonIklan').textContent=kpi.kpiSuksesNonIklan;
-if(kpi.kpiCPA)document.getElementById('kpiCPA').textContent=kpi.kpiCPA;
-if(kpi.kpiPendingMeta)document.getElementById('kpiPendingMeta').textContent=kpi.kpiPendingMeta;
+// Inject KPI values — helper bersihkan desimal dari string rupiah laporan lama
+// (disimpan sebelum rupiah() membulatkan). rpNum: angka bulat dari string;
+// refRp: format ulang "Rp..." di dalam string jadi bulat, sisakan " (count)".
+const rpNum=s=>Math.round(parseFloat(String(s==null?'':s).replace(/Rp/,'').split('(')[0].replace(/\./g,'').replace(',','.'))||0);
+const refRp=s=>String(s==null?'':s).replace(/Rp\s*[\d.,]+/,m=>'Rp'+rpNum(m).toLocaleString('id-ID'));
+const parseCount=s=>{const m=String(s||'').match(/\((\d+)\)/);return m?parseInt(m[1]):0;};
+if(kpi.kpiSpent)document.getElementById('kpiSpent').textContent=refRp(kpi.kpiSpent);
+if(kpi.kpiSuksesAll)document.getElementById('kpiSuksesAll').textContent=refRp(kpi.kpiSuksesAll);
+if(kpi.kpiPendingAll)document.getElementById('kpiPendingAll').textContent=refRp(kpi.kpiPendingAll);
+if(kpi.kpiSuksesMeta)document.getElementById('kpiSuksesMeta').textContent=refRp(kpi.kpiSuksesMeta);
+if(kpi.kpiPendingMeta)document.getElementById('kpiPendingMeta').textContent=refRp(kpi.kpiPendingMeta);
 if(kpi.kpiRoasIklan)document.getElementById('kpiRoasIklan').textContent=kpi.kpiRoasIklan;
 if(kpi.kpiRoasTotal)document.getElementById('kpiRoasTotal').textContent=kpi.kpiRoasTotal;
 if(kpi.kpiJumlah)document.getElementById('kpiJumlah').textContent=kpi.kpiJumlah;
-if(kpi.kpiAvg)document.getElementById('kpiAvg').textContent=kpi.kpiAvg;
+// Avg: bulatkan dari kolom tersimpan (laporan lama masih desimal)
+if(data.avg_donasi)document.getElementById('kpiAvg').textContent='Avg: Rp'+Math.round(data.avg_donasi).toLocaleString('id-ID');
+else if(kpi.kpiAvg)document.getElementById('kpiAvg').textContent=refRp(kpi.kpiAvg);
+// KPI baru: pakai nilai tersimpan kalau ada; kalau tidak (laporan lama), turunkan
+// dari ANGKA YANG SAMA dengan yang tampil supaya selisih di layar konsisten (rekonsiliasi)
+const countMeta=parseCount(kpi.kpiSuksesMeta), countAll=parseCount(kpi.kpiSuksesAll);
+if(kpi.kpiSuksesNonIklan){document.getElementById('kpiSuksesNonIklan').textContent=refRp(kpi.kpiSuksesNonIklan);}
+else{const nonRp=rpNum(kpi.kpiSuksesAll)-rpNum(kpi.kpiSuksesMeta);document.getElementById('kpiSuksesNonIklan').textContent='Rp'+nonRp.toLocaleString('id-ID')+' ('+(countAll-countMeta)+')';}
+if(kpi.kpiCPA){document.getElementById('kpiCPA').textContent=refRp(kpi.kpiCPA);}
+else{const spentRp=rpNum(kpi.kpiSpent)||data.total_spent||0;const cpaV=countMeta?spentRp/countMeta:0;document.getElementById('kpiCPA').textContent='Rp'+Math.round(cpaV).toLocaleString('id-ID');}
 const storedRoas=data.roas_sukses||0,storedRoasAll=data.roas_all||0,storedSpent=data.total_spent||0,storedSuksesAll=data.sukses_all||0,storedPendingAll=data.pending_all||0,storedSuksesIklan=data.sukses_iklan||0,storedJumlah=data.jumlah_donasi||0,storedAvg=data.avg_donasi||0;
 const BL={roasMin:2,roasOk:3,roasGood:5,roasExc:7};
 const rl=storedRoas>=BL.roasExc?'luar biasa':storedRoas>=BL.roasGood?'sangat baik':storedRoas>=BL.roasOk?'cukup':storedRoas>=BL.roasMin?'di bawah ideal':'merugi';
