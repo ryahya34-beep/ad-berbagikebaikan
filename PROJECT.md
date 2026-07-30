@@ -431,3 +431,47 @@ ambang pause Supabase 7 hari.
   exhibit low activity in a 7-day period"). Tidak ada larangan keep-alive.
   PEMICU upgrade Pro: kalau pause tetap kejadian meski cron jalan, atau saat
   handover ke klien berbayar.
+
+---
+# Version: 6.8 | Updated: 2026-07-30
+
+## Hapus Momentum + rombak KPI Ringkasan
+
+### Hapus fitur "Setup & Analisa Momentum"
+Fitur terisolasi (kodenya berlabel "ISOLATED"). Dibuang total: kartu HTML
+`#momentumSetupCard`, blok JS "MOMENTUM ANALYSIS" (~348 baris: momentumRows,
+MOMENTUM_PRESETS, addMomentumRow, applyPreset, removeMomentumRow, hariKalender,
+buildMomentum), plus pemanggil kecil (deteksi activeMomentum di analisa, insight
+"Momentum aktif", cabang `switchTab` tabName==='momentum', call buildMomentum di
+path load server, 2 blok duplikat auto-init row). **Forecast tetap** (fitur beda).
+
+### KPI: 8 → 10, grid 5 kolom, urut berhubungan
+Ditata ulang tanpa kotak kosong (10 habis dibagi 5 & 2). Desktop repeat(5,1fr) 2
+baris; mobile tetap 2 kolom (5 baris). Urutan:
+Baris 1: Spent, Biaya/Donasi(CPA), Sukses All, Sukses Iklan, Sukses Non-Iklan
+  → Sukses All = Sukses Iklan + Sukses Non-Iklan berjejer, selisih kebaca langsung.
+Baris 2: Pending All, Pending Iklan, ROAS Sukses Iklan, ROAS All Iklan, Jumlah Donasi.
+
+KPI baru:
+- **Sukses Non-Iklan** = suksesAll - suksesMeta, count = jumlahSukses - jumlahSuksesMeta
+  (Organik+WhatsApp). Kartu cyan. Nutup selisih Sukses All vs Sukses Iklan yang dulu
+  invisible (verified: 443-285=158, Rp99.935.012-80.660.000=Rp19.275.012).
+- **Biaya/Donasi (CPA)** = totalBudget / jumlahSuksesMeta. Kartu indigo.
+  (verified: 27.531.216/285 = Rp96.601).
+
+Fix bug tampil:
+- `rupiah()` tak membulatkan → "Avg" bocor desimal, terbaca "Rp230.320.777" (padahal
+  ~Rp230.321). Fix lokal: `rupiah(Math.round(avgDonasi))` dan `rupiah(Math.round(cpa))`.
+  `rupiah()` sendiri TIDAK diubah (dipakai banyak tempat lain).
+
+Simpan/muat server: kpiCPA & kpiSuksesNonIklan ditambahkan ke snapshot per_kpi +
+restore, biar laporan tersimpan ikut tampil 10 KPI.
+
+### Deviasi dari plan (dilaporkan, bukan diam-diam)
+Sublabel diganti demi konsistensi & kebenaran (Ridwan tidak eksplisit minta, tapi
+menambah "Sukses Non-Iklan / Organik+WhatsApp" bikin "Iklan Matched" janggal):
+- "Iklan Matched" (Sukses/Pending Iklan) → "Channel Iklan"
+- "All Matched / Spent" (ROAS All) → "Semua Donasi Iklan / Spent"
+Alasan: angka Sukses/Pending Iklan dihitung dari SEMUA donasi channel Iklan tanpa
+filter match campaign (lihat buildRingkasan komentar "tanpa peduli match campaign"),
+jadi label lama "Matched" faktual salah. Bisa direvert kalau Ridwan mau kata lama.
